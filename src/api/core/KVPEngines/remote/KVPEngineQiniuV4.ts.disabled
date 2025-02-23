@@ -1,0 +1,97 @@
+import * as qiniu from "qiniu-js";
+import { Buffer } from "buffer";
+import KVPEngineBase from "../../types/KVPEngineBase";
+import EncryptionEngineBase from "../../types/EncryptionEngineBase";
+import RequestURLBuilder from "@/utils/http/RequestURLBuilder";
+import axios from "axios";
+
+/**
+ * 七牛云存储实现的键值对引擎
+ */
+export class QiniuKVPEngine extends KVPEngineBase {
+    private config!: {
+        isHttps: boolean;
+        domain: string;
+        downloadToken: string;
+        uploadToken: string;
+        manageToken: string;
+    };
+    private encryptionEngine!: EncryptionEngineBase;
+
+    public init(entryFileSrc: string, encryptionEngine: EncryptionEngineBase) {
+        const config = JSON.parse(entryFileSrc);
+        this.config = {
+            isHttps: config.isHttps,
+            domain: config.domain,
+            downloadToken: config.downloadToken,
+            uploadToken: config.uploadToken,
+            manageToken: config.manageToken
+        };
+        this.encryptionEngine = encryptionEngine;
+    }
+
+    public async hasData(key: string): Promise<boolean> {
+        const encodedKey = encodeURIComponent(key);
+        const statUrl = `${this.config.domain}/${encodedKey}?stat`;
+
+        try {
+            const response = await fetch(statUrl, { method: "HEAD" });
+            return response.status === 200;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    /**
+     * https://developer.qiniu.com/kodo/1656/download-private
+     * @param key 键
+     * @param value 值
+     * @returns Promise<void>
+     */
+    public async getData(key: string): Promise<Buffer> {
+        const builder = new RequestURLBuilder(this.config.domain, this.config.isHttps);
+        const expireStamp = Math.floor(Date.now() / 1000) + 3600; // 1 hour later
+        const downloadUrl = builder.buildUrl(key, { e: expireStamp, token: this.config.downloadToken });
+
+        const response = await axios.get(downloadUrl, { responseType: "arraybuffer" });
+        const arrayBuffer = response.data;
+        return await this.encryptionEngine.decrypt(Buffer.from(arrayBuffer));
+    }
+
+    public async setData(key: string, value: Buffer): Promise<void> {
+        const fileData: qiniu.FileData = { type: "array-buffer", data: new ArrayBuffer(value.length) };
+        const UploadTask = qiniu.createMultipartUploadV2Task(fileData, {
+            tokenProvider: () => Promise.resolve(this.config.uploadToken),
+            uploadHosts: [this.config.domain],
+            logLevel: "INFO",
+            protocol: this.config.isHttps ? "HTTPS" : "HTTP"
+        });
+
+        return new Promise((resolve, reject) => {
+            UploadTask.onComplete((result, context) => {
+                resolve();
+            });
+            UploadTask.onError((error, context) => {
+                reject(error);
+            });
+        });
+    }
+
+    public async deleteData(key: string): Promise<void> {
+        // 生成URL安全的Base64编码
+        const entry = `${this.config.bucket}:${key}`;
+        const encodedEntry = Buffer.from(entry).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+
+        const response = await fetch(`http://rs.qiniu.com/delete/${encodedEntry}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                Authorization: `QBox ${this.config.manageToken}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Delete failed with status: ${response.status}`);
+        }
+    }
+}

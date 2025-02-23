@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- 
+   _____                       _   
+  / ____|                     | |  
+ | |  __  ___ _ __ _   _ _ __ | |_ 
+ | | |_ |/ __| '__| | | | '_ \| __|
+ | |__| | (__| |  | |_| | |_) | |_ 
+  \_____|\___|_|   \__, | .__/ \__|
+                    __/ | |        
+                   |___/|_|         
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <link rel="icon" href="/favicon.png">
+  <title>
+    Gcrypt
+  </title>
+  <script>
+    function isNodeJS() {
+      return !!(typeof process === "object" && typeof require === "function" && process.versions && process.versions.node);
+    }
+
+    function isElectron() {
+      return !!(typeof process === "object" && process.versions && process.versions.electron);
+    }
+
+    // 如果是在 Node.js 环境下，不进行模拟
+    if (!isNodeJS()) {
+      window.global = window;
+      // 创建一个模拟的 process 对象
+      const mockProcess = {
+        platform: "web",
+        env: {
+          NODE_ENV: "development"
+        },
+        pid: 1234,
+        memoryUsage: function () {
+          // 返回一个模拟的内存使用情况
+          return {
+            rss: 1024 * 1024, // 假设 RSS 为 1MB
+            heapTotal: 1024 * 1024, // 假设堆总大小为 1MB
+            heapUsed: 512 * 1024, // 假设堆已使用大小为 512KB
+            external: 0,
+            arrayBuffers: 0
+          };
+        },
+        versions: {
+          node: undefined,
+          electron: undefined,
+          v8: "0.0.0",
+          chrome: "0.0.0",
+        },
+        version: 'v18.17.1',
+        // nextTick: function (callback, args) {
+        //   // 使用 Promise.resolve 创建一个微任务
+        //   Promise.resolve().then(() => {
+        //     callback(args);
+        //   });
+        // }
+        nextTick: function (callback, ...args) {
+          setTimeout(() => {
+            callback(...args);
+          }, 0);
+        }
+      };
+      // 将模拟的 process 对象挂载到 window 对象上
+      window.process = mockProcess;
+    }
+  </script>
+</head>
+
+<body>
+
+  <div id="app"></div>
+  <script src="./src/main.ts"></script>
+  <style>
+    @font-face {
+      font-family: Material Design Icons;
+      src: url(./materialdesignicons-webfont.ttf) format("truetype");
+      font-weight: 400;
+      font-style: normal
+    }
+  </style>
+  <!-- built files will be auto injected -->
+</body>
+<!-- 
+<script>
+    // monaco编辑器会污染原生node的require函数，在此暂存，随后恢复
+    window.myRequire = require;
+</script>
+<script src="./libs/vs/loader.js"></script>
+<script>
+    require.config({paths: {'vs': './public/vs'}});
+    // 将monaco变量赋值为全局变量
+    require(['./vs/editor/editor.main'], function () { });
+    window.require = myRequire;
+</script> -->
+
+</html>
+
+<!-- 加载AceEditor -->
+<!-- <script src="./libs/AceEditor/ace.js" type="text/javascript" charset="utf-8"></script> -->
