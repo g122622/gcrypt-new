@@ -59,7 +59,7 @@ const computedMenuLists = computed(() => {
 })
 
 const handleRightClick = async (event) => {
-    console.log(event)
+    // console.log(event)
     // mock event object for touch devices using vue-hand-mobile
     if (!Object.hasOwn(event, 'preventDefault')) {
         event = {

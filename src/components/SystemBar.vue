@@ -20,7 +20,7 @@
             等待任务数：{{ pendingOrRunningTaskAmount }}
         </v-chip>
         <v-spacer />
-        <div v-ripple class="system-bar-item" v-for=" item in itemList.filter(i => !i.hide) " :key="item.name"
+        <div v-ripple class="system-bar-item" v-for="item in itemList.filter(i => !i.hide)" :key="item.name"
             @click="item.onClick" :class="item.class">
             <v-icon>
                 {{ item.icon }}
@@ -192,10 +192,12 @@ const itemList = computed(() => {
 
 .system-bar-item-normal:hover {
     background-color: rgba(128, 128, 128, 0.5);
+    cursor: pointer;
 }
 
 .system-bar-item-danger:hover {
     background-color: rgba(255, 29, 29, 0.9);
+    cursor: pointer;
 }
 
 .v-theme--LightTheme {

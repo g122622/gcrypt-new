@@ -21,6 +21,7 @@ interface Props {
     debounceResize?: boolean
     gap?: number // in px
     minColumnWidth?: number // in px
+    padding?: number // padding of the container, in px
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -29,7 +30,8 @@ const props = withDefaults(defineProps<Props>(), {
     layoutMode: 'grid',
     debounceResize: true,
     gap: 10,
-    minColumnWidth: 200
+    minColumnWidth: 200,
+    padding: 10
 })
 
 const { width: windowWidth } = useWindowSize()
@@ -68,7 +70,9 @@ const containerStyle = computed<CSSProperties>(() => ({
     display: ['grid', 'flex'].includes(props.layoutMode) ? props.layoutMode : 'block',
     gridTemplateColumns: getGridTemplateColumns(),
     gap: `${props.gap}px`,
-    position: needsPositioning.value ? 'relative' : 'static'
+    position: needsPositioning.value ? 'relative' : 'static',
+    padding: `${props.padding}px`,
+    width: 'calc(100% - ${props.padding * 2}px)',
 }))
 
 function getGridTemplateColumns() {
@@ -151,7 +155,6 @@ watch(
 
 <style scoped lang="less">
 .advanced-grid {
-    width: 100%;
     height: auto;
 
     &.layout-flex {

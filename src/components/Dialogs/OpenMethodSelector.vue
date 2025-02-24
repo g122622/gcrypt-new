@@ -149,6 +149,7 @@ onMounted(() => {
 
 .method-item:hover {
     opacity: 0.5;
+    cursor: pointer;
 }
 
 

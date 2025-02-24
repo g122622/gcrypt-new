@@ -46,7 +46,7 @@
                                         <v-btn v-for="listItem in item.list" :key="listItem.title">
                                             <v-icon>{{ listItem.icon }}</v-icon>
                                             <v-tooltip activator="parent" location="bottom">{{ listItem.title
-                                            }}</v-tooltip>
+                                                }}</v-tooltip>
                                         </v-btn>
 
                                     </v-btn-toggle>
@@ -114,13 +114,13 @@
             </v-app-bar>
 
             <!-- 主内容区 -->
-            <v-main style="display: block; height: 100%;">
+            <v-main style="display: block; height: 100%;width: 100%;overflow-x: hidden;">
                 <div style="overflow-y: scroll;overflow-x: hidden;"
                     :style="{ height: props.height ?? 'calc(100% - 32px)' }">
                     <!-- 文件列表 -->
                     <template v-if="currentFileTableForRender.length > 0 && !isLoading">
                         <template v-if="viewOptions.itemDisplayMode === 1">
-                            <AdvancedGrid layout-mode="grid" columns="auto-fill"
+                            <AdvancedGrid layout-mode="grid" columns="auto-fill" :padding="10"
                                 :min-column-width="viewOptions.itemSize" :gap="10">
                                 <FileItem :viewOptions="viewOptions" :singleFileItem="item" :index="index"
                                     :adapter="props.adapter" v-dbltouch="() => handleItemDoubleClick(item)"
