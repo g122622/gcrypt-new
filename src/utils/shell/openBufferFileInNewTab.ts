@@ -21,6 +21,7 @@ export default function openBufferFileInNewTab(buffer: ArrayBuffer, fileName: st
             <body style="margin:0;">
               <!-- 标题 -->
               <div id="title">[${number}] ${fileName}</div>
+              <div id="title">Opened at ${new Date().toLocaleString()}</div>
               <img src="${url}" />
             </body>
             <style>

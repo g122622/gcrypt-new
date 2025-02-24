@@ -19,8 +19,8 @@ interface Props {
     columns?: string | number | Record<string, string | number>
     layoutMode?: 'grid' | 'flex' | 'masonry' | 'waterfall'
     debounceResize?: boolean
-    gap?: string | Record<string, string>
-    minColumnWidth?: string
+    gap?: number // in px
+    minColumnWidth?: number // in px
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -28,8 +28,8 @@ const props = withDefaults(defineProps<Props>(), {
     columns: 'auto-fit',
     layoutMode: 'grid',
     debounceResize: true,
-    gap: 'md',
-    minColumnWidth: '200px'
+    gap: 10,
+    minColumnWidth: 200
 })
 
 const { width: windowWidth } = useWindowSize()
@@ -60,26 +60,15 @@ const currentColumns = computed(() => {
             if (props.columns[bp]) return props.columns[bp]
         }
     }
-    return props.columns
-})
-
-// 间距计算
-const currentGap = computed(() => {
-    if (typeof props.gap === 'object') {
-        const sortedNames = sortedBreakpoints.value.map(bp => bp.name).reverse()
-        for (const bp of sortedNames) {
-            if (props.gap[bp]) return `var(--grid-gap-${props.gap[bp]})`
-        }
-    }
-    return `var(--grid-gap-${props.gap})`
+    return <string | number>props.columns
 })
 
 // 容器样式
 const containerStyle = computed<CSSProperties>(() => ({
     display: ['grid', 'flex'].includes(props.layoutMode) ? props.layoutMode : 'block',
     gridTemplateColumns: getGridTemplateColumns(),
-    gap: currentGap.value,
-    // position: needsPositioning.value ? 'relative' : 'static'
+    gap: `${props.gap}px`,
+    position: needsPositioning.value ? 'relative' : 'static'
 }))
 
 function getGridTemplateColumns() {
@@ -87,7 +76,7 @@ function getGridTemplateColumns() {
     const cols = currentColumns.value
     if (typeof cols === 'number') return `repeat(${cols}, 1fr)`
     if (cols === 'auto-fit' || cols === 'auto-fill')
-        return `repeat(${cols}, minmax(${props.minColumnWidth}, 1fr))`
+        return `repeat(${cols}, minmax(${props.minColumnWidth}px, 1fr))`
     return cols
 }
 

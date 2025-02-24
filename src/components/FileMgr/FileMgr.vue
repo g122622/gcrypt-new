@@ -46,13 +46,21 @@
                                         <v-btn v-for="listItem in item.list" :key="listItem.title">
                                             <v-icon>{{ listItem.icon }}</v-icon>
                                             <v-tooltip activator="parent" location="bottom">{{ listItem.title
-                                                }}</v-tooltip>
+                                            }}</v-tooltip>
                                         </v-btn>
 
                                     </v-btn-toggle>
                                 </template>
                             </v-list-item>
                         </v-list>
+                        <!-- item大小滚动条 -->
+                        <div style="width:100%;">
+                            <!-- TS类型限制，只能把v-model展开 -->
+                            <v-slider thumb-label="always" color="primary" :modelValue="viewOptions.itemSize"
+                                @update:modelValue="newValue => { viewOptions.itemSize = newValue }" :max="200"
+                                :min="75" :step="1">
+                            </v-slider>
+                        </div>
                     </v-card>
                 </v-menu>
                 <!-- 新建按钮 -->
@@ -111,15 +119,31 @@
                     :style="{ height: props.height ?? 'calc(100% - 32px)' }">
                     <!-- 文件列表 -->
                     <template v-if="currentFileTableForRender.length > 0 && !isLoading">
-                        <FileItem :viewOptions="viewOptions" :singleFileItem="item" :index="index"
-                            :adapter="props.adapter" v-dbltouch="() => handleItemDoubleClick(item)"
-                            @selected="handleItemSelection(item)" @unselected="handleItemUnselection(item)"
-                            :isSelected="selectedItems.has(item)" v-for="(item, index) in currentFileTableForRender"
-                            :key="item.key">
-                            <ContextMenu :width="200" :menuList="(getItemMenuList(item) as contextMenuItem[])"
-                                v-if="options.useCtxMenu">
-                            </ContextMenu>
-                        </FileItem>
+                        <template v-if="viewOptions.itemDisplayMode === 1">
+                            <AdvancedGrid layout-mode="grid" columns="auto-fill"
+                                :min-column-width="viewOptions.itemSize" :gap="10">
+                                <FileItem :viewOptions="viewOptions" :singleFileItem="item" :index="index"
+                                    :adapter="props.adapter" v-dbltouch="() => handleItemDoubleClick(item)"
+                                    @selected="handleItemSelection(item)" @unselected="handleItemUnselection(item)"
+                                    :isSelected="selectedItems.has(item)"
+                                    v-for="(item, index) in currentFileTableForRender" :key="item.key">
+                                    <ContextMenu :width="200" :menuList="(getItemMenuList(item) as contextMenuItem[])"
+                                        v-if="options.useCtxMenu">
+                                    </ContextMenu>
+                                </FileItem>
+                            </AdvancedGrid>
+                        </template>
+                        <template v-else>
+                            <FileItem :viewOptions="viewOptions" :singleFileItem="item" :index="index"
+                                :adapter="props.adapter" v-dbltouch="() => handleItemDoubleClick(item)"
+                                @selected="handleItemSelection(item)" @unselected="handleItemUnselection(item)"
+                                :isSelected="selectedItems.has(item)" v-for="(item, index) in currentFileTableForRender"
+                                :key="item.key">
+                                <ContextMenu :width="200" :menuList="(getItemMenuList(item) as contextMenuItem[])"
+                                    v-if="options.useCtxMenu">
+                                </ContextMenu>
+                            </FileItem>
+                        </template>
                         <!-- 替代file-item，用于测试
                         <div v-for="item in currentFileTableForRender" :key="item.key"
                             @click="handleItemDoubleClick(item)" style="width: 100px;height: 100px;" v-ripple>
@@ -144,8 +168,7 @@
                     </div>
                     <BottomTip></BottomTip>
                     <!-- 背景右键菜单 -->
-                    <ContextMenu :width="200" v-if="options.useCtxMenu && !isMobile()"
-                    :menuList="[
+                    <ContextMenu :width="200" v-if="options.useCtxMenu && !isMobile()" :menuList="[
                         {
                             text: '上一级目录', icon: 'mdi-arrow-up', actions: { onClick: () => { up() } }
                         },
@@ -198,6 +221,7 @@ import { log, warn } from "@/utils/gyConsole";
 import sleep from "@/utils/sleep";
 import contextMenuItem from "@/types/contextMenuItem";
 import vDbltouch from "@/directives/dbltouch";
+import { isElectron, isMobile } from "@/platform/platform";
 
 // 组件
 import ContextMenu from "../shared/ContextMenu.vue";
@@ -206,7 +230,8 @@ import DialogMgr from "./DialogMgr.vue";
 import BottomBar from "./BottomBar.vue";
 import ClipBoard from "./ClipBoard.vue";
 import SearchMgr from "./SearchMgr.vue";
-import { isElectron, isMobile } from "@/platform/platform";
+import AdvancedGrid from "../ResponsiveLayout/AdvancedGrid.vue";
+import { vi } from "vitest";
 
 interface Props {
     adapter: AdapterBase,
@@ -249,7 +274,7 @@ const initAll = async () => {
     isLoading.value = true
 
     await gotoDir(props.adapter.getCurrentDirectory(), true)
-    watch(viewOptions, (newVal, oldVal) => {
+    watch(viewOptions, (_newVal, oldVal) => {
         // 保存viewOptions
         tryToSaveViewOptions(oldVal)
     }, { deep: true })
@@ -554,7 +579,7 @@ const handleFileImportClick = () => {
 // <外观选择相关>
 const defaultViewOptions = {
     itemDisplayMode: Math.floor(settingsStore.getSetting('filemgr_dafault_display_mode')), // 0 list, 1 item, 2 看图模式
-    itemSize: 5, // 区间[0,10]的整数, '5' stands for medium size
+    itemSize: 125, // in px
     sortBy: 0, // 0 name, 1 timeModify
     folderFirst: 1,
     sequence: 0, // 0 ascending | 1 descending
@@ -738,10 +763,16 @@ const currentFileTableForRender = computed<FileTable['items']>(() => {
     if (!viewOptions.value.showHiddenItem) {
         res = res.filter(item => item.name[0] !== ".")
     }
-
     // 搜索过滤
     if (searchWord.value) {
         res = res.filter(item => item.name.toLowerCase().includes(searchWord.value.toLowerCase()))
+    }
+    // 显示扩展名
+    if (!viewOptions.value.showExtName) {
+        res = res.map(item => {
+            item.name = getFileName(item.name)
+            return item
+        })
     }
     return res
 })

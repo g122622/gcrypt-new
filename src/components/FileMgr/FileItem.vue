@@ -12,7 +12,7 @@
                 {{ `[${index + 1}] ${singleFileItem.name}` }}
             </v-tooltip>
             <!-- 前置内容 -->
-            <div style="display: flex;justify-content: flex-start;align-items: center;"
+            <div style="display: flex;justify-content: flex-start;align-items: center; height:70%"
                 :style="{ flexDirection: (viewOptions.itemDisplayMode === 0 ? 'row' : 'column') }">
                 <template v-if="singleFileItem.type === `folder`">
                     <img :src="`./assets/fileTypes/folder.png`" class="file-types-image" loading="lazy" />
@@ -69,6 +69,8 @@ import getThumbnailFromSystem from '@/utils/image/getThumbnailFromSystem'
 import { warn } from "@/utils/gyConsole";
 import sleep from "@/utils/sleep";
 import { Buffer } from "buffer";
+import { isElectron } from "@/platform/platform";
+import generateThumbnailUsingCanvas from "@/utils/image/generateThumbnailUsingCanvas";
 
 interface Props {
     viewOptions: ViewOptions,
@@ -136,9 +138,55 @@ const onIntersect = (isIntersectingArg /* , entries, observer */) => {
     }, 0)
 }
 
-// <缩略图>
+// #region --- 缩略图
 const currentThumbnail = ref<string>('')
 let idleCallbackId = null
+const registerCallbackOfGetThumbnailFromSystem = () => {
+    // 尝试从系统获取缩略图，并保存
+    idleCallbackId = requestIdleCallback(async () => {
+        if (!(await props.adapter.hasExtraMeta(props.singleFileItem.key, 'fileOriginalPath'))) {
+            return
+        }
+        let fileOriginalPath = null
+        // 3次尝试从系统获取缩略图，并保存
+        for (let i = 0; i < 3; i++) {
+            try {
+                fileOriginalPath = (await props.adapter.getExtraMeta(props.singleFileItem.key, 'fileOriginalPath')).toString()
+                currentThumbnail.value = await getThumbnailFromSystem(fileOriginalPath, { height: 256, width: 256, quality: 90 })
+                await props.adapter.setExtraMeta(props.singleFileItem.key, 'thumbnail', Buffer.from(currentThumbnail.value))
+                break
+            } catch (e) {
+                warn(`第${i + 1}次从系统获取缩略图失败，错误原因：${e.toString()}，文件在本地系统的路径：${fileOriginalPath}`)
+            }
+            if (i === 2) {
+                await props.adapter.setExtraMeta(props.singleFileItem.key, 'thumbnail', Buffer.from('n/a'))
+                warn(`3次从系统获取缩略图全部失败，文件在本地系统的路径：${fileOriginalPath}`)
+            } else {
+                // 休眠一段时间之后再试
+                await sleep(500)
+            }
+        }
+        // 收尾工作，清理掉fileOriginalPath
+        await props.adapter.deleteExtraMeta(props.singleFileItem.key, 'fileOriginalPath')
+    })
+}
+// 尝试从canvas生成缩略图，并保存
+const registerCallbackOfGenerateThumbnail = () => {
+    if (getFileType(props.singleFileItem.name) !== 'img') {
+        return; // 非图片文件不生成缩略图
+    }
+    idleCallbackId = requestIdleCallback(async () => {
+        const base64Str = (await props.adapter.readFile(props.singleFileItem.name)).toString('base64')
+        const dataUrl = `data:image/jpg;base64,${base64Str}`
+        const res = await generateThumbnailUsingCanvas(
+            dataUrl,
+            { height: 256, width: 256, quality: 90, outputType: 'base64' }
+        ) as string;
+        currentThumbnail.value = res
+        await props.adapter.setExtraMeta(props.singleFileItem.key, 'thumbnail', Buffer.from(currentThumbnail.value))
+    })
+}
+// #endregion
 
 onMounted(async () => {
     // 自动创建和加载缩略图相关逻辑
@@ -150,35 +198,14 @@ onMounted(async () => {
                 if (thumbnailStr !== 'n/a') {
                     currentThumbnail.value = thumbnailStr
                 }
-            } else {
+            } else { // 无法从adapter获取到缩略图，则尝试从系统获取或者生成
                 // 当thumbnailBuf为null
-                // 尝试从系统获取缩略图，并保存
-                idleCallbackId = requestIdleCallback(async () => {
-                    if (!(await props.adapter.hasExtraMeta(props.singleFileItem.key, 'fileOriginalPath'))) {
-                        return
-                    }
-                    let fileOriginalPath = null
-                    // 3次尝试从系统获取缩略图，并保存
-                    for (let i = 0; i < 3; i++) {
-                        try {
-                            fileOriginalPath = (await props.adapter.getExtraMeta(props.singleFileItem.key, 'fileOriginalPath')).toString()
-                            currentThumbnail.value = await getThumbnailFromSystem(fileOriginalPath, { height: 256, width: 256, quality: 90 })
-                            await props.adapter.setExtraMeta(props.singleFileItem.key, 'thumbnail', Buffer.from(currentThumbnail.value))
-                            break
-                        } catch (e) {
-                            warn(`第${i + 1}次从系统获取缩略图失败，错误原因：${e.toString()}，文件在本地系统的路径：${fileOriginalPath}`)
-                        }
-                        if (i === 2) {
-                            await props.adapter.setExtraMeta(props.singleFileItem.key, 'thumbnail', Buffer.from('n/a'))
-                            warn(`3次从系统获取缩略图全部失败，文件在本地系统的路径：${fileOriginalPath}`)
-                        } else {
-                            // 休眠一段时间之后再试
-                            await sleep(500)
-                        }
-                    }
-                    // 收尾工作，清理掉fileOriginalPath
-                    await props.adapter.deleteExtraMeta(props.singleFileItem.key, 'fileOriginalPath')
-                })
+                if (isElectron()) {
+                    registerCallbackOfGetThumbnailFromSystem()
+                } else {
+                    registerCallbackOfGenerateThumbnail()
+                }
+
             }
         } catch (e) {
             warn('缩略图加载失败:' + e.message)
@@ -264,16 +291,15 @@ onUnmounted(() => {
 }
 
 .file-item-item {
-    float: left;
-    height: 120px;
-    width: 115px;
+    // float: left;
     flex-direction: column;
+    justify-content: space-evenly;
     padding: 10px;
-    margin-left: 15px;
-    margin-top: 10px;
+    aspect-ratio: 1.05; // 缩放后仍然保持长宽比的关键
 
     .file-types-image {
-        height: 60px;
+        // width: 60px;
+        height: calc(100% - 20px);
     }
 
     .file-types-image-corner {
@@ -284,7 +310,8 @@ onUnmounted(() => {
     }
 
     .file-thumbnail-img {
-        height: 60px;
+        // height: 60px;
+        height: calc(100% - 20px);
     }
 
     .file-name {
