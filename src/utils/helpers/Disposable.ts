@@ -37,7 +37,7 @@ class Disposable implements IDisposable {
     }
 
     /**
-     * 释放所有资源
+     * 释放所有资源。这个函数不允许被重写。
      */
     dispose(): void {
         if (this._isDisposed) return;

@@ -1,61 +1,97 @@
 import notification from "@/api/notification";
 import getMimeType from "../file/getMimeType";
 import { IDisposable } from "../helpers/Disposable";
+import getFileType from "../file/getFileType";
 
 let number = 1;
 
 export default function openBufferFileInNewTab(buffer: ArrayBuffer, fileName: string): IDisposable {
-    // 创建 Blob 对象
-    const blob = new Blob([buffer], { type: getMimeType(fileName) });
-
-    // 创建一个 object URL
+    const mimeType = getMimeType(fileName);
+    const blob = new Blob([buffer], { type: mimeType });
     const url = URL.createObjectURL(blob);
-
-    // 打开一个新的标签页
-    const newTab = window.open(url, fileName);
+    const newTab = window.open(url, fileName) as unknown as Window;
 
     if (newTab) {
-        // 在新标签页中添加 img 标签并设置 src 属性
+        let contentHtml = "";
+        const titleHtml = `
+            <div id="title">[${number}] ${fileName}</div>
+            <div id="title">Opened at ${new Date().toLocaleString()}</div>
+        `;
+
+        const fileType = getFileType(fileName)
+        if (fileType === "img") {
+            // 图片
+            contentHtml = `<img src="${url}" style="max-width:100%;height:auto;display:block;margin:0 auto;">`;
+        } else if (fileType === "audio") {
+            // 音频
+            contentHtml = `<audio controls src="${url}" style="display:block;margin:20px auto;"></audio>`;
+        } else if (fileType === "video") {
+            // 视频
+            contentHtml = `<video controls src="${url}" style="max-width:100%;margin:0 auto;"></video>`;
+        } else if (
+            // 文本文件 / 代码文件
+            fileType === "txt" || fileType === "code"
+        ) {
+            const text = new TextDecoder().decode(buffer);
+            contentHtml = `<pre style="white-space:pre-wrap;padding:20px;background:#f8f9fa;border-radius:4px;margin:20px;">${text.replace(
+                /[&<>"']/g,
+                m =>
+                    ({
+                        "&": "&amp;",
+                        "<": "&lt;",
+                        ">": "&gt;",
+                        '"': "&quot;",
+                        "'": "&#39;"
+                    }[m]!)
+            )}</pre>`;
+        } else {
+            // 其他文件
+            contentHtml = `<a href="${url}" download="${fileName}" style="display:block;text-align:center;padding:20px;color:#0366d6;">
+                Download File (${fileName})
+            </a>`;
+        }
+
         newTab.document.write(`
-          <html>
-            <body style="margin:0;">
-              <!-- 标题 -->
-              <div id="title">[${number}] ${fileName}</div>
-              <div id="title">Opened at ${new Date().toLocaleString()}</div>
-              <img src="${url}" />
-            </body>
-            <style>
-            /* 现代化的圆角样式，力求美观 */
-              #title {
-                background-color: #f5f5f5;
-                padding: 10px;
-                border-radius: 5px;
-                font-size: 16px;
-                font-weight: bold;
-                text-align: center;
-                /*consolas*/
-                font-family: "Consolas", "Courier New", "Courier", monospace;
-              }
-            </style>
-          </html>
+            <html>
+                <head>
+                    <title>[${number}] ${fileName}</title>
+                    <style>
+                        #title {
+                            background: #f5f5f5;
+                            padding: 12px;
+                            border-radius: 6px;
+                            font: 16px/1.5 Consolas, Courier New, monospace;
+                            text-align: center;
+                            margin: 10px;
+                        }
+                        body {
+                            margin: 0;
+                            padding: 20px;
+                            background: white;
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${titleHtml}
+                    ${contentHtml}
+                </body>
+            </html>
         `);
 
-        // 设置新标签页标题
+        newTab.document.close(); // Closes an output stream and forces the sent data to display.
         newTab.document.title = `[${number}] ${fileName}`;
         number++;
 
-        // 清除 object URL，释放内存
-        newTab.onload = () => URL.revokeObjectURL(url);
+        // 安全释放URL（当窗口关闭时）
+        newTab.addEventListener("beforeunload", () => URL.revokeObjectURL(url));
     } else {
-        notification.error("未能打开新标签页，请检查浏览器设置");
+        notification.error("Failed to open new tab");
     }
 
     return {
         dispose: () => {
-            // 关闭标签页
-            if (newTab) {
-                newTab.close();
-            }
+            URL.revokeObjectURL(url);
+            newTab?.close();
         }
     };
 }

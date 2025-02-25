@@ -46,7 +46,7 @@
                                         <v-btn v-for="listItem in item.list" :key="listItem.title">
                                             <v-icon>{{ listItem.icon }}</v-icon>
                                             <v-tooltip activator="parent" location="bottom">{{ listItem.title
-                                                }}</v-tooltip>
+                                            }}</v-tooltip>
                                         </v-btn>
 
                                     </v-btn-toggle>
@@ -121,7 +121,7 @@
                     <template v-if="currentFileTableForRender.length > 0 && !isLoading">
                         <template v-if="viewOptions.itemDisplayMode === 1">
                             <AdvancedGrid layout-mode="grid" columns="auto-fill" :padding="10"
-                                :min-column-width="viewOptions.itemSize" :gap="10">
+                                :min-column-width="viewOptions.itemSize > 75 ? viewOptions.itemSize : 105" :gap="10">
                                 <FileItem :viewOptions="viewOptions" :singleFileItem="item" :index="index"
                                     :adapter="props.adapter" v-dbltouch="() => handleItemDoubleClick(item)"
                                     @selected="handleItemSelection(item)" @unselected="handleItemUnselection(item)"

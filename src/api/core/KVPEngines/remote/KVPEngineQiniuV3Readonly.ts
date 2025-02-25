@@ -9,6 +9,7 @@ import EntryJson from "../../types/EntryJson";
 import { Buffer } from "buffer";
 import { changeGlobalOperationState, resetGlobalOperationState } from "@/utils/globalOperationState";
 import { Disposable } from "@/utils/helpers/Disposable";
+import LRUCache from "@/utils/helpers/LRUCache";
 
 /**
  * 七牛云存储实现的键值对引擎
@@ -23,6 +24,7 @@ export default class KVPEngineQiniuV3Readonly extends Disposable implements KVPE
     };
     protected encryptionEngine!: EncryptionEngineBase;
     public useMD5Hashing: boolean = true; // 仅仅用于测试，实际使用时请设置为 true
+    protected LRUCache: LRUCache = null;
 
     constructor() {
         super();
@@ -31,7 +33,10 @@ export default class KVPEngineQiniuV3Readonly extends Disposable implements KVPE
                 this.config = undefined as any;
                 this.encryptionEngine = undefined as any;
             }
-        })
+        });
+        // 这个缓存主要是为了缓存小文件（如元数据、缩略图等），因此单item最大值设为512KB
+        this.LRUCache = new LRUCache(1024 * 1024 * 20, 1024 * 512); // 20MB, 512KB
+        this._register(this.LRUCache);
     }
 
     public async init(entryFileSrc: string, encryptionEngine: EncryptionEngineBase) {
@@ -86,6 +91,13 @@ export default class KVPEngineQiniuV3Readonly extends Disposable implements KVPE
         if (this.useMD5Hashing) {
             key = getDigest(Buffer.from(key), "md5");
         }
+
+        // access the cache first
+        if (this.LRUCache.get(key)) {
+            resetGlobalOperationState();
+            return true;
+        }
+
         const url = this.buildDownloadUrl(key);
         // use axios to send request
         try {
@@ -112,10 +124,22 @@ export default class KVPEngineQiniuV3Readonly extends Disposable implements KVPE
         if (this.useMD5Hashing) {
             key = getDigest(Buffer.from(key), "md5");
         }
+
+        // access the cache first
+        const cachedValue = this.LRUCache.get(key);
+        if (cachedValue) {
+            resetGlobalOperationState();
+            return cachedValue;
+        }
+
         const downloadUrl = this.buildDownloadUrl(key);
         const response = await axios.get(downloadUrl, { responseType: "arraybuffer" });
         const arrayBuffer = response.data;
         const res = await this.encryptionEngine.decrypt(Buffer.from(arrayBuffer));
+
+        // update the cache
+        this.LRUCache.put(key, res);
+
         resetGlobalOperationState();
         return res;
     }
