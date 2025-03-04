@@ -132,16 +132,21 @@ export default class KVPEngineQiniuV3Readonly extends Disposable implements KVPE
             return cachedValue;
         }
 
-        const downloadUrl = this.buildDownloadUrl(key);
-        const response = await axios.get(downloadUrl, { responseType: "arraybuffer" });
-        const arrayBuffer = response.data;
-        const res = await this.encryptionEngine.decrypt(Buffer.from(arrayBuffer));
-
-        // update the cache
-        this.LRUCache.put(key, res);
-
-        resetGlobalOperationState();
-        return res;
+        try {
+            const downloadUrl = this.buildDownloadUrl(key);
+            const response = await axios.get(downloadUrl, { responseType: "arraybuffer" });
+            const arrayBuffer = response.data;
+            // decrypt the data
+            const res = await this.encryptionEngine.decrypt(Buffer.from(arrayBuffer));
+            // update the cache
+            this.LRUCache.put(key, res);
+            // set the global operation state
+            resetGlobalOperationState();
+            return res;
+        } catch (error) {
+            resetGlobalOperationState();
+            throw error;
+        }
     }
 
     public async setData(_key: string, _value: Buffer): Promise<void> {

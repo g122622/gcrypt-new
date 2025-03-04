@@ -18,7 +18,7 @@ export default function openBufferFileInNewTab(buffer: ArrayBuffer, fileName: st
             <div id="title">Opened at ${new Date().toLocaleString()}</div>
         `;
 
-        const fileType = getFileType(fileName)
+        const fileType = getFileType(fileName);
         if (fileType === "img") {
             // 图片
             contentHtml = `<img src="${url}" style="max-width:100%;height:auto;display:block;margin:0 auto;">`;
@@ -30,7 +30,9 @@ export default function openBufferFileInNewTab(buffer: ArrayBuffer, fileName: st
             contentHtml = `<video controls src="${url}" style="max-width:100%;margin:0 auto;"></video>`;
         } else if (
             // 文本文件 / 代码文件
-            fileType === "txt" || fileType === "code"
+            fileType === "txt" ||
+            fileType === "code" ||
+            fileType === "config"
         ) {
             const text = new TextDecoder().decode(buffer);
             contentHtml = `<pre style="white-space:pre-wrap;padding:20px;background:#f8f9fa;border-radius:4px;margin:20px;">${text.replace(

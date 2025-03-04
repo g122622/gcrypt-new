@@ -3,6 +3,8 @@ import vue from "@vitejs/plugin-vue";
 import path from "path";
 import nodePolyfills from "vite-plugin-node-stdlib-browser";
 import less from "@farmfe/js-plugin-less";
+import { VitePWA } from "vite-plugin-pwa";
+
 const process = require("process");
 const os = require("os");
 
@@ -34,7 +36,7 @@ const totalMem = os.totalmem();
 const freeMem = os.freemem();
 
 export default defineConfig({
-    vitePlugins: [nodePolyfills(), vue()],
+    vitePlugins: [nodePolyfills(), vue(), VitePWA({ registerType: "autoUpdate" })],
     plugins: [less()],
     compilation: {
         resolve: {

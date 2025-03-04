@@ -121,12 +121,12 @@ class LRUCache extends Disposable {
         return node.value;
     }
 
-    // 可选：获取当前缓存大小（用于测试）
+    // 获取当前缓存大小
     public getcurrentSizeInBytes(): number {
         return this.currentSizeInBytes;
     }
 
-    // 可选：获取缓存中的键数量（用于测试）
+    // 获取缓存中的键数量
     public getKeyCount(): number {
         return this.hashMap.size;
     }
