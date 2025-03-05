@@ -39,30 +39,30 @@ export default defineConfig({
     vitePlugins: [
         nodePolyfills(),
         vue(),
-        VitePWA({
-            registerType: "autoUpdate",
-            workbox: {
-                globPatterns: ["**/*.{js,css,html,ico,png,svg}"]
-            },
-            manifest: {
-                name: "Gcrypt",
-                short_name: "Gcrypt",
-                description: "跨平台文件加密一站式解决方案",
-                theme_color: "#000000",
-                icons: [
-                    {
-                        src: "pwa-192x192.png",
-                        sizes: "192x192",
-                        type: "image/png"
-                    },
-                    {
-                        src: "pwa-512x512.png",
-                        sizes: "512x512",
-                        type: "image/png"
-                    }
-                ]
-            }
-        }),
+        // VitePWA({
+        //     registerType: "autoUpdate",
+        //     workbox: {
+        //         globPatterns: ["**/*.{js,css,html,ico,png,svg}"]
+        //     },
+        //     manifest: {
+        //         name: "Gcrypt",
+        //         short_name: "Gcrypt",
+        //         description: "跨平台文件加密一站式解决方案",
+        //         theme_color: "#000000",
+        //         icons: [
+        //             {
+        //                 src: "pwa-192x192.png",
+        //                 sizes: "192x192",
+        //                 type: "image/png"
+        //             },
+        //             {
+        //                 src: "pwa-512x512.png",
+        //                 sizes: "512x512",
+        //                 type: "image/png"
+        //             }
+        //         ]
+        //     }
+        // }),
     ],
     plugins: [less()],
     compilation: {

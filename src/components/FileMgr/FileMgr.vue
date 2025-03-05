@@ -30,15 +30,15 @@
                 <IconBtn icon="mdi-arrow-left" tooltip="后退" @click="back()"></IconBtn>
                 <IconBtn icon="mdi-arrow-up" tooltip="上一级目录" @click="up()"></IconBtn>
                 <!-- 布局按钮组 -->
-                <v-menu>
-                    <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props">
+                <ResponsiveMenu>
+                    <template v-slot:activator="props">
+                        <v-btn icon v-bind="props.activator.props">
                             <v-icon>mdi-view-module</v-icon>
                             <v-tooltip activator="parent" location="bottom">布局选项</v-tooltip>
                         </v-btn>
                     </template>
                     <v-card>
-                        <v-list lines="one" width="400px">
+                        <v-list lines="one">
                             <v-list-subheader>布局选项</v-list-subheader>
                             <v-list-item v-for="item in viewOptionsLists" :key="item.name" :title="item.name">
                                 <template #append>
@@ -46,7 +46,7 @@
                                         <v-btn v-for="listItem in item.list" :key="listItem.title">
                                             <v-icon>{{ listItem.icon }}</v-icon>
                                             <v-tooltip activator="parent" location="bottom">{{ listItem.title
-                                            }}</v-tooltip>
+                                                }}</v-tooltip>
                                         </v-btn>
 
                                     </v-btn-toggle>
@@ -62,11 +62,11 @@
                             </v-slider>
                         </div>
                     </v-card>
-                </v-menu>
+                </ResponsiveMenu>
                 <!-- 新建按钮 -->
-                <v-menu>
-                    <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props">
+                <ResponsiveMenu>
+                    <template v-slot:activator="props">
+                        <v-btn icon v-bind="props.activator.props">
                             <v-icon>mdi-plus</v-icon>
                             <v-tooltip activator="parent" location="bottom">新建文件系统对象</v-tooltip>
                         </v-btn>
@@ -81,7 +81,7 @@
                             <v-tooltip activator="parent" location="bottom">{{ item.title }}</v-tooltip>
                         </v-list-item>
                     </v-list>
-                </v-menu>
+                </ResponsiveMenu>
                 <!-- 引入按钮 -->
                 <IconBtn icon="mdi-import" tooltip="从外部引入文件" @click="handleFileImportClick()">
                     <input type="file" id='file-import' style="display: none;" multiple />
@@ -93,7 +93,8 @@
                 <div style="margin-left: 15px;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;">
                     <v-icon @click="gotoDir(currentDir.goToRoot(), true)"
                         style="cursor: pointer;">mdi-map-marker</v-icon>
-                    <v-tooltip activator="parent" location="bottom">{{ `当前目录: ` + currentDir.toPathStr() }}</v-tooltip>
+                    <v-tooltip activator="parent" location="bottom">{{ `当前目录: ` + currentDir.toPathStr()
+                        }}</v-tooltip>
                     <v-breadcrumbs density="compact" style="display: inline;">
                         <template v-for="(item, i) in currentDir.tokens" :key="item">
                             <v-breadcrumbs-item :title="item"
@@ -232,6 +233,7 @@ import ClipBoard from "./ClipBoard.vue";
 import SearchMgr from "./SearchMgr.vue";
 import AdvancedGrid from "../ResponsiveLayout/AdvancedGrid.vue";
 import { vi } from "vitest";
+import ResponsiveMenu from "../ResponsiveLayout/ResponsiveMenu.vue";
 
 interface Props {
     adapter: AdapterBase,
