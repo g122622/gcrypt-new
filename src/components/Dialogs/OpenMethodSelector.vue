@@ -1,6 +1,6 @@
 <template>
-    <DialogGenerator v-model:isDialogOpen="isShowing" width="650px" :isPersistent="true"
-        :bottomActions="[{ text: '取消', onClick: () => { isShowing = false } }]">
+    <DialogGenerator v-model:isDialogOpen="isShowing" width="650px" :isPersistent="false"
+        :bottomActions="[{ text: '取消', onClick: () => { isShowing = false; } }]">
         <template #mainContent>
             <!-- <v-list lines="two">
                 <v-list-item v-for="item in methodsList" :key="item.name" :title="item.name"
@@ -13,24 +13,27 @@
 </v-list-item>
 </v-list> -->
             <AdvancedList density="compact" :items="methodsList" empty-tip="暂无找到的打开方式" use-search use-bottom-tip
-                v-slot="{ matchedItems }" subheader="选择打开方式">
-                <transition-group>
-                    <div class="method-item" v-for="item in matchedItems" :key="item.name" @click="onItemClick(item)"
-                        v-ripple>
-                        <v-icon color="white">{{ item.icon }}</v-icon>
-                        <div style="max-width: 110px;">
-                            <div class="method-item-header">
-                                {{ item.name }}
-                            </div>
-                            <div class="method-item-tags">
-                                <v-chip v-for="fileType in getTagsToShow(item)" :key="fileType" color="primary"
-                                    size="x-small" style="margin: 1px;">
-                                    {{ fileType }}
-                                </v-chip>
+                v-slot="{ matchedItems }" subheader="选择打开方式" width="100%">
+                <div style="text-align: center;margin:5px;">{{ fileName }}</div>
+                <AdvancedGrid layout-mode="grid" columns="auto-fill" :padding="10" :min-column-width="140" :gap="10">
+                    <transition-group>
+                        <div class="method-item" v-for="item in matchedItems" :key="item.name"
+                            @click="onItemClick(item)" v-ripple>
+                            <v-icon color="white">{{ item.icon }}</v-icon>
+                            <div style="max-width: 110px;">
+                                <div class="method-item-header">
+                                    {{ item.name }}
+                                </div>
+                                <div class="method-item-tags">
+                                    <v-chip v-for="fileType in getTagsToShow(item)" :key="fileType" color="primary"
+                                        size="x-small" style="margin: 1px;">
+                                        {{ fileType }}
+                                    </v-chip>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </transition-group>
+                    </transition-group>
+                </AdvancedGrid>
             </AdvancedList>
             <a class="text-blue text-decoration-none" v-if="!isShowingAllMethods" @click="isShowingAllMethods = true"
                 style="">
@@ -48,17 +51,20 @@
 
 <script setup lang="ts">
 // 这个组件只负责UI，逻辑交给OpenMethodMgr去处理
-import { ref, computed, onMounted } from "vue"
+import { ref, computed, onMounted, watch } from "vue"
 import { OpenMethodMgr, IOpenMethod } from "@/api/OpenMethodMgr"
 import emitter from "@/eventBus"
 import File from "@/api/File"
 import { useSettingsStore } from "@/store/settings"
 import registerBulitinOpenMethods from "@/api/registerBuiltinOpenMethods"
 import AdvancedList from "../shared/AdvancedList.vue"
+import AdvancedGrid from "../ResponsiveLayout/AdvancedGrid.vue"
 
 const store = useSettingsStore()
 const fileType = ref<string>('')
+const fileName = ref<string>('')
 const isShowing = ref<boolean>(false)
+const didLastSelectedAnyMethod = ref<boolean>(false)
 const isRememberMethod = ref<boolean>(false)
 const isShowingAllMethods = ref<boolean>(false)
 const openMethodMgr = new OpenMethodMgr()
@@ -105,8 +111,16 @@ const onItemClick = (item) => {
         setAppointedMethod(fileType.value, item.name)
     }
     item.onSelected(currentFile, currentExtra)
+    didLastSelectedAnyMethod.value = true
     isShowing.value = false
 }
+
+// 如果弹窗被关闭，且用户没有选择任何打开方式，则销毁当前文件
+watch(isShowing, (newVal) => {
+    if (!newVal && !didLastSelectedAnyMethod.value) {
+        currentFile.dispose()
+    }
+})
 
 onMounted(() => {
     // 注册内置方法
@@ -116,8 +130,10 @@ onMounted(() => {
         currentFile = fileArg
         currentExtra = extraArg
         fileType.value = fileTypeArg
+        fileName.value = currentFile.filename
         isRememberMethod.value = false
         isShowingAllMethods.value = false
+        didLastSelectedAnyMethod.value = false
         if (Object.hasOwn(appointedFileOpenMethods.value, fileTypeArg)) {
             const name = appointedFileOpenMethods.value[fileTypeArg]
             openMethodMgr.getMethodByName(name).onSelected(currentFile, currentExtra)
@@ -136,10 +152,6 @@ onMounted(() => {
     align-items: center;
     justify-content: space-around;
 
-    width: 180px;
-    height: 100px;
-    float: left;
-    margin: 7px;
     background-color: rgb(25, 25, 25);
     border-radius: 10px;
     padding: 15px;
@@ -151,8 +163,6 @@ onMounted(() => {
     opacity: 0.5;
     cursor: pointer;
 }
-
-
 
 .method-item-header {
     font-size: 16px;

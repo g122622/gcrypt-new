@@ -1,5 +1,5 @@
 <template>
-    <v-menu :close-on-content-click="false">
+    <ResponsiveMenu :close-on-content-click="false">
         <template v-slot:activator="{ props }">
             <v-btn icon v-bind="props" size="x-small" variant="plain">
                 <v-icon>mdi-clipboard-list</v-icon>
@@ -8,7 +8,7 @@
         </template>
         <v-card>
             <AdvancedList density="compact" height="300px" :use-bottom-tip="true" :use-search="true" subheader="剪贴板"
-                width="400px" empty-tip="剪贴板为空" :items="clipBoardItems" v-slot="{ matchedItems }">
+                min-width="400px" empty-tip="剪贴板为空" :items="clipBoardItems" v-slot="{ matchedItems }">
                 <v-list-item v-for="item in matchedItems" :key="item.srcAddr.toPathStr()"
                     :title="item.srcAddr.toPathStr() + item.filename">
                     <template #prepend>
@@ -23,7 +23,7 @@
                 </v-list-item>
             </AdvancedList>
         </v-card>
-    </v-menu>
+    </ResponsiveMenu>
 </template>
 
 <script setup lang="ts">
@@ -37,6 +37,7 @@ import Task from "@/api/Task";
 import DirSingleItem from "@/api/core/types/DirSingleItem";
 import lodash from "lodash";
 import notification from "@/api/notification";
+import ResponsiveMenu from "@/components/ResponsiveLayout/ResponsiveMenu.vue";
 
 interface Props {
     adapter: AdapterBase,

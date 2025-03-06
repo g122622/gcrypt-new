@@ -11,7 +11,7 @@
         </template>
         <template #narrow>
             <!-- narrow!!! -->
-            <v-bottom-sheet>
+            <v-bottom-sheet style="margin: 10px;">
                 <template v-slot:activator="{ props }">
                     <slot name="activator" :props="props"></slot>
                 </template>

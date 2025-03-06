@@ -52,8 +52,13 @@ class File extends Disposable {
         mainStore.setFileActiveState(fileguid, "file", this);
 
         this._register({
-            dispose: () => {
-                this.destroy();
+            dispose: async () => {
+                // 先销毁文件watcher，再删除临时文件，
+                // 若顺序颠倒则会在删除的时候触动fileWatcher，造成死循环
+                if (this.fileWatcher) {
+                    await this.fileWatcher.dispose();
+                }
+                mainStore.activeFiles.delete(this.fileguid);
             }
         });
     }
@@ -97,9 +102,9 @@ class File extends Disposable {
 
         // 注册dispose方法，删除临时文件
         this._register({
-            dispose: () => {
+            dispose: async () => {
                 if (this.tmpFilePath) {
-                    VFS.unlink(this.tmpFilePath);
+                    await VFS.unlink(this.tmpFilePath);
                 }
             }
         });
@@ -183,22 +188,6 @@ class File extends Disposable {
             ),
             { runImmediately: true }
         );
-    }
-
-    private async destroy() {
-        // 先销毁文件watcher，再删除临时文件，
-        // 若顺序颠倒则会在删除的时候触动fileWatcher，造成死循环
-        if (this.fileWatcher) {
-            this.fileWatcher.dispose();
-        }
-    }
-
-    /**
-     * 静态方法
-     */
-    static async inactivateFile(fileguid) {
-        await mainStore.activeFiles.get(fileguid).file.dispose();
-        mainStore.activeFiles.delete(fileguid);
     }
 }
 

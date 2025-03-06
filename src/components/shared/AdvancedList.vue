@@ -12,7 +12,7 @@
 
     <template v-if="matchedItems.length >= 1">
         <!-- 列表主内容 -->
-        <v-list :lines="lines ?? 'one'" :density="density ?? 'compact'" :width="width" :height="height"
+        <v-list :lines="lines ?? 'one'" :density="density ?? 'compact'" :width="width" :min-width="minWidth" :height="height"
             :id="`advanced-list-${guid}`"
             :style="{ 'border-radius': useBiggerMargin ? '15px' : 'unset', 'margin': useBiggerMargin ? '15px' : 'unset', 'margin-top': useBiggerMargin ? '3px' : 'unset' }">
             <slot :matchedItems="matchedItems" />
@@ -42,6 +42,7 @@ interface Props {
     subheader?: string,
     lines?: false | 'one' | 'two' | 'three',
     width?: string,
+    minWidth?: string,
     emptyTip?: string,
     useBiggerMargin?: boolean
 }

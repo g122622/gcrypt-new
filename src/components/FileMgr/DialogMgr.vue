@@ -1,6 +1,6 @@
 <template>
     <!-- 文件夹 -->
-    <v-dialog v-model="folderDialogIsOpen" persistent>
+    <ResponsiveDialog v-model="folderDialogIsOpen" persistent>
         <v-card density="compact">
             <v-card-title>
                 <span class="text-h6">新建文件夹</span>
@@ -9,7 +9,8 @@
                 <v-container>
                     <v-row>
                         <v-col cols="12">
-                            <AdvancedTextField label="文件夹名称*" v-model:currentInput="folderName" density="compact" required>
+                            <AdvancedTextField label="文件夹名称*" v-model:currentInput="folderName" density="compact"
+                                required>
                             </AdvancedTextField>
                         </v-col>
                         <v-col cols="12" sm="6">
@@ -30,10 +31,10 @@
                 </v-btn>
             </v-card-actions>
         </v-card>
-    </v-dialog>
+    </ResponsiveDialog>
 
     <!-- 文件 -->
-    <v-dialog v-model="fileDialogIsOpen" persistent>
+    <ResponsiveDialog v-model="fileDialogIsOpen" persistent>
         <v-card density="compact">
             <v-card-title>
                 <span class="text-h6">新建文件</span>
@@ -63,10 +64,10 @@
                 </v-btn>
             </v-card-actions>
         </v-card>
-    </v-dialog>
+    </ResponsiveDialog>
 
     <!-- 重命名 -->
-    <v-dialog v-model="renameDialogIsOpen" persistent>
+    <ResponsiveDialog v-model="renameDialogIsOpen" persistent>
         <v-card density="compact">
             <v-card-title>
                 <span class="text-h6">重命名</span>
@@ -75,7 +76,8 @@
                 <v-container>
                     <v-row>
                         <v-col cols="12">
-                            <AdvancedTextField label="新的文件名*" v-model:currentInput="newFileName" density="compact" required>
+                            <AdvancedTextField label="新的文件名*" v-model:currentInput="newFileName" density="compact"
+                                required>
                             </AdvancedTextField>
                         </v-col>
                     </v-row>
@@ -92,15 +94,19 @@
                 </v-btn>
             </v-card-actions>
         </v-card>
-    </v-dialog>
+    </ResponsiveDialog>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue"
 import { Buffer } from "buffer";
+import ResponsiveDialog from "../ResponsiveLayout/ResponsiveDialog.vue";
 
 export default defineComponent({
     name: 'DialogMgr',
+    components: {
+        ResponsiveDialog
+    },
     props: {
         adapter: Object,
         refresh: Function

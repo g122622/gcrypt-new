@@ -1,6 +1,5 @@
 import FileActiveState from "@/types/FileActiveState";
 import { defineStore } from "pinia";
-import File from "@/api/File";
 import KVStore from "@/utils/KVStore";
 
 // 初始化electron-store
@@ -25,7 +24,7 @@ export const useMainStore = defineStore("main", {
             mainContentScrollable: true,
             activeFiles: new Map() as Map<string, FileActiveState>,
             appVersion: mainStore.get("appVersion") as string,
-            appVersionOld: mainStore.get("appVersionOld") as string,
+            appVersionOld: mainStore.get("appVersionOld") as string
         };
     },
     actions: {
@@ -39,10 +38,10 @@ export const useMainStore = defineStore("main", {
         async inactivateAllFiles() {
             const promises = [];
             this.activeFiles.forEach((value, key) => {
-                promises.push(File.inactivateFile(key));
+                promises.push(value.file.dispose());
             });
             await Promise.all(promises);
             this.activeFiles.clear();
-        },
+        }
     }
 });

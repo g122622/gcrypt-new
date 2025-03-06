@@ -46,7 +46,7 @@
                                         <v-btn v-for="listItem in item.list" :key="listItem.title">
                                             <v-icon>{{ listItem.icon }}</v-icon>
                                             <v-tooltip activator="parent" location="bottom">{{ listItem.title
-                                            }}</v-tooltip>
+                                                }}</v-tooltip>
                                         </v-btn>
 
                                     </v-btn-toggle>
@@ -71,16 +71,18 @@
                             <v-tooltip activator="parent" location="bottom">新建文件系统对象</v-tooltip>
                         </v-btn>
                     </template>
-                    <v-list>
-                        <v-list-item v-for="(item, index) in addList" :key="index" :value="index"
-                            @click="item.handler.bind(this)()">
-                            <template v-slot:prepend>
-                                <v-icon :icon="item.icon"></v-icon>
-                            </template>
-                            <v-list-item-title>{{ item.title }}</v-list-item-title>
-                            <v-tooltip activator="parent" location="bottom">{{ item.title }}</v-tooltip>
-                        </v-list-item>
-                    </v-list>
+                    <v-card>
+                        <v-list>
+                            <v-list-item v-for="(item, index) in addList" :key="index" :value="index"
+                                @click="item.handler.bind(this)()">
+                                <template v-slot:prepend>
+                                    <v-icon :icon="item.icon"></v-icon>
+                                </template>
+                                <v-list-item-title>{{ item.title }}</v-list-item-title>
+                                <v-tooltip activator="parent" location="bottom">{{ item.title }}</v-tooltip>
+                            </v-list-item>
+                        </v-list>
+                    </v-card>
                 </ResponsiveMenu>
                 <!-- 引入按钮 -->
                 <IconBtn icon="mdi-import" tooltip="从外部引入文件" @click="handleFileImportClick()">
@@ -94,7 +96,7 @@
                     <v-icon @click="gotoDir(currentDir.goToRoot(), true)"
                         style="cursor: pointer;">mdi-map-marker</v-icon>
                     <v-tooltip activator="parent" location="bottom">{{ `当前目录: ` + currentDir.toPathStr()
-                    }}</v-tooltip>
+                        }}</v-tooltip>
                     <v-breadcrumbs density="compact" style="display: inline;">
                         <template v-for="(item, i) in currentDir.tokens" :key="item">
                             <v-breadcrumbs-item :title="item"

@@ -1,5 +1,5 @@
 <template>
-    <v-dialog v-model="isDialogOpen" :persistent="props.isPersistent || false" :width="props.width || 600"
+    <ResponsiveDialog v-model="isDialogOpen" :persistent="props.isPersistent || false" :width="props.width || 600"
         :height="props.height">
         <v-card density="compact">
             <v-card-title v-if="props.title" style="display: flex; align-items: center;">
@@ -25,13 +25,14 @@
                 </v-btn>
             </v-card-actions>
         </v-card>
-    </v-dialog>
+    </ResponsiveDialog>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue"
 import dialogBottomAction from "@/types/dialogBottomAction"
 import { useDialogStore } from "@/store/dialog";
+import ResponsiveDialog from "../ResponsiveLayout/ResponsiveDialog.vue";
 
 interface Props {
     isDialogOpen: boolean,

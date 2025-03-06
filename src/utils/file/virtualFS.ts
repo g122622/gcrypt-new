@@ -3,7 +3,7 @@ import { configure, InMemory, promises as zenFS_promises } from "@zenfs/core";
 // import notification from "@/api/notification";
 import { isNodeJS } from "@/platform/platform";
 import { IndexedDB, WebStorage } from "@zenfs/dom";
-import { log, success } from "../gyConsole";
+import { success } from "../gyConsole";
 
 // interface VirtualFS {
 //     readFileSync(path: string, options?: { encoding?: BufferEncoding | null; flag?: string }): Buffer | string;
@@ -42,7 +42,7 @@ import { log, success } from "../gyConsole";
 // };
 
 // init
-log("开始初始化虚拟文件系统");
+console.log("开始初始化虚拟文件系统");
 const configureOptions = {
     mounts: {
         "/Mem": InMemory, // 内存存储

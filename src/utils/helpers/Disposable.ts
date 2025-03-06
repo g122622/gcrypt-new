@@ -12,7 +12,7 @@
  */
 
 interface IDisposable {
-    dispose(): void;
+    dispose(): Promise<void> | void;
 }
 
 class Disposable implements IDisposable {
@@ -39,23 +39,31 @@ class Disposable implements IDisposable {
     /**
      * 释放所有资源。这个函数不允许被重写。
      */
-    dispose(): void {
+    dispose(): void | Promise<void> {
         if (this._isDisposed) return;
-
-        this._isDisposed = true;
-
         // 遍历释放所有资源
         try {
+            const promises = []; // 存储所有异步任务的 Promise
             this._disposables.forEach(disposable => {
                 try {
-                    disposable.dispose();
+                    const promise = disposable.dispose();
+                    if (promise && typeof promise.then === "function") {
+                        promises.push(promise);
+                    }
                 } catch (e) {
                     console.error("Error disposing object:", e);
                 }
             });
+            if (promises.length > 0) {
+                return Promise.all(promises).then(() => {
+                    this._disposables.clear();
+                    this._isDisposed = true;
+                });
+            }
         } finally {
             this._disposables.clear();
         }
+        this._isDisposed = true;
     }
 
     /**

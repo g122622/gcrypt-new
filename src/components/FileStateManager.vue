@@ -13,11 +13,11 @@
                 <!-- 主内容 -->
                 <AdvancedList lines="two" subheader="打开的文件" :items="listItems" useBottomTip useSearch
                     v-slot="{ matchedItems }">
-                    <v-list-item v-for="item in matchedItems" :key="item.key" :title="item.key">
+                    <v-list-item v-for="item in (matchedItems as typeof listItems)" :key="item.key" :title="item.key">
                         <template #append>
                             <IconBtn icon="mdi-information" :tooltip="getTooltip(item.value)" size="small" />
                             <IconBtn icon="mdi-close" tooltip="解除占用(inactivate)" size="small"
-                                @click="File.inactivateFile(item.key)" />
+                                @click="item.value.file.dispose()" />
                         </template>
                     </v-list-item>
                 </AdvancedList>
@@ -37,7 +37,6 @@
 import { computed } from "vue"
 import { useMainStore } from "@/store/main"
 import FileActiveState from "@/types/FileActiveState";
-import File from "@/api/File";
 import ResponsiveMenu from "./ResponsiveLayout/ResponsiveMenu.vue";
 
 const mainStore = useMainStore()
