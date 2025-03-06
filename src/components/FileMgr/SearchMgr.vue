@@ -1,7 +1,7 @@
 <template>
     <ResponsiveMenu :close-on-content-click="false">
-        <template v-slot:activator="props">
-            <v-btn icon v-bind="props.activator.props" variant="flat">
+        <template v-slot:activator="{props}">
+            <v-btn icon v-bind="props" variant="flat">
                 <v-icon>mdi-magnify</v-icon>
                 <v-tooltip activator="parent" location="bottom">搜索</v-tooltip>
             </v-btn>
