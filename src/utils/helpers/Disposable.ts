@@ -58,6 +58,9 @@ class Disposable implements IDisposable {
                 return Promise.all(promises).then(() => {
                     this._disposables.clear();
                     this._isDisposed = true;
+                }).catch(e => {
+                    console.error("Error disposing objects:", e);
+                    this._isDisposed = false;
                 });
             }
         } finally {
