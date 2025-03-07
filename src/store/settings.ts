@@ -47,6 +47,8 @@ export const useSettingsStore = defineStore("settings", {
                 return this.settings.find(item => item.name === name).value;
             } catch (e) {
                 this.updateSettings();
+                // 再试一次
+                return this.settings.find(item => item.name === name).value;
             }
         },
         hasSetting(name: string) {

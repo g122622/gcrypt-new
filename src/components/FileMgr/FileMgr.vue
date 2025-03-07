@@ -46,7 +46,7 @@
                                         <v-btn v-for="listItem in item.list" :key="listItem.title">
                                             <v-icon>{{ listItem.icon }}</v-icon>
                                             <v-tooltip activator="parent" location="bottom">{{ listItem.title
-                                                }}</v-tooltip>
+                                            }}</v-tooltip>
                                         </v-btn>
 
                                     </v-btn-toggle>
@@ -96,7 +96,7 @@
                     <v-icon @click="gotoDir(currentDir.goToRoot(), true)"
                         style="cursor: pointer;">mdi-map-marker</v-icon>
                     <v-tooltip activator="parent" location="bottom">{{ `当前目录: ` + currentDir.toPathStr()
-                        }}</v-tooltip>
+                    }}</v-tooltip>
                     <v-breadcrumbs density="compact" style="display: inline;">
                         <template v-for="(item, i) in currentDir.tokens" :key="item">
                             <v-breadcrumbs-item :title="item"
@@ -206,7 +206,7 @@ import lodash from "lodash";
 import DirSingleItem from "@/api/core/types/DirSingleItem";
 import FileTable from "@/api/core/types/FileTable";
 import emitter from "@/eventBus";
-import AdapterBase from "@/api/core/types/AdapterBase";
+import IAdapter from "@/api/core/types/IAdapter";
 import File from "@/api/File";
 import getExtName from "@/utils/file/getExtName";
 import { useTaskStore } from '@/store/task'
@@ -237,7 +237,7 @@ import AdvancedGrid from "../ResponsiveLayout/AdvancedGrid.vue";
 import ResponsiveMenu from "../ResponsiveLayout/ResponsiveMenu.vue";
 
 interface Props {
-    adapter: AdapterBase,
+    adapter: IAdapter,
     height?: string,
     options?: FileMgrOptions,
     selectedItems?: Set<DirSingleItem>,
@@ -303,7 +303,8 @@ onMounted(async () => {
     initAll()
 })
 
-onUnmounted(() => {
+onUnmounted(async () => {
+    await props.adapter.dispose();
     log('FileMgr成功销毁')
 })
 

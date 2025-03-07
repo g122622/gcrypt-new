@@ -101,7 +101,7 @@ const defaultSettings = Object.freeze(<Array<settingItem>>[
         value: true,
         title: "开启单例锁",
         des: "阻止用户开启多个相同的Gcrypt窗口，避免冲突",
-        category: "通用"
+        category: "杂项"
     },
     {
         name: "use_shade",
@@ -109,7 +109,7 @@ const defaultSettings = Object.freeze(<Array<settingItem>>[
         value: false,
         title: "背景黑色遮罩",
         des: "绘制一个纯黑色窗口，覆盖屏幕工作区域",
-        category: "通用"
+        category: "杂项"
     },
     {
         name: "on_top",
@@ -117,7 +117,7 @@ const defaultSettings = Object.freeze(<Array<settingItem>>[
         value: false,
         title: "窗口悬浮顶层",
         des: "没什么好说的",
-        category: "通用"
+        category: "杂项"
     },
     {
         name: "content_protection",
@@ -267,7 +267,15 @@ const defaultSettings = Object.freeze(<Array<settingItem>>[
         value: false,
         title: "总是显示版本更新信息",
         des: "每次更新后都会跳出来的版本更新详情",
-        category: "通用"
+        category: "杂项"
+    },
+    {
+        name: "prevent_tab_close",
+        type: SettingTypes.switcher,
+        value: true,
+        title: "阻止标签页关闭",
+        des: "当用户重载、关闭主标签页时，阻止关闭",
+        category: "杂项"
     }
 ]);
 

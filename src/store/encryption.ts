@@ -7,9 +7,9 @@ import VFS from "@/utils/file/virtualFS";
 import { error, success } from "@/utils/gyConsole";
 import notification from "@/api/notification";
 
-import EncryptionEngineBase from "@/api/core/types/EncryptionEngineBase";
-import AdapterBase from "@/api/core/types/AdapterBase";
-import KVPEngineBase from "@/api/core/types/KVPEngineBase";
+import IEncryptionEngine from "@/api/core/types/IEncryptionEngine";
+import IAdapter from "@/api/core/types/IAdapter";
+import IKVPEngine from "@/api/core/types/IKVPEngine";
 
 import KVPEngineJson from "@/api/core/KVPEngines/KVPEngineJson";
 import GcryptV1Adapter from "@/api/core/adapters/gcryptV1/adapter";
@@ -18,6 +18,7 @@ import KVPEngineFolder from "@/api/core/KVPEngines/KVPEngineFolder";
 import KVPEngineHybrid from "@/api/core/KVPEngines/KVPEngineHybrid";
 import EncryptionEngineNoop from "@/api/core/encryptionEngines/EncryptionEngineNoop";
 import KVStore from "@/utils/KVStore";
+import GcryptApp from "@/main";
 
 interface StoreListItem extends EntryJson {
     storeEntryJsonSrc: string;
@@ -52,12 +53,12 @@ export const useEncryptionStore = defineStore("encryption", {
          * @param entryFileSrc
          * @param password
          * @param entryJSONArg
-         * @returns Promise<AdapterBase>
+         * @returns Promise<IAdapter>
          */
         async getInitedAdapter(entryFileSrc: string, password: string, entryJSONArg: EntryJson) {
-            let adapter: AdapterBase = null;
-            let KVPEngine: KVPEngineBase = null;
-            let encryptionEngine: EncryptionEngineBase = null;
+            let adapter: IAdapter = null;
+            let KVPEngine: IKVPEngine = null;
+            let encryptionEngine: IEncryptionEngine = null;
             const adapterGuid = sharedUtils.getHash(16);
 
             switch (entryJSONArg.config.adapter) {
@@ -109,6 +110,7 @@ export const useEncryptionStore = defineStore("encryption", {
                 success(`KVPEngine inited, entryFileSrc: ${entryFileSrc}`);
                 await adapter.initAdapter(KVPEngine, adapterGuid);
                 success("adapter inited");
+                GcryptApp.registerGlobalDisposable(adapter);
             } catch (e) {
                 notification.error("加载加密库失败：" + e.toString());
                 console.log(e);

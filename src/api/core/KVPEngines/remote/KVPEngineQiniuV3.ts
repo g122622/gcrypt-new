@@ -1,5 +1,5 @@
 import * as qiniu from "qiniu-js";
-import KVPEngineBase from "../../types/KVPEngineBase";
+import IKVPEngine from "../../types/IKVPEngine";
 import RequestURLBuilder from "@/utils/http/RequestURLBuilder";
 import axios from "axios";
 import getDigest from "@/api/hash/getDigest";
@@ -9,7 +9,7 @@ import { Buffer } from "buffer";
 /**
  * 七牛云存储实现的键值对引擎
  */
-export default class KVPEngineQiniuV3 extends KVPEngineQiniuV3Readonly implements KVPEngineBase {
+export default class KVPEngineQiniuV3 extends KVPEngineQiniuV3Readonly implements IKVPEngine {
     /**
      * https://developer.qiniu.com/kodo/1208/upload-token
      * @param key

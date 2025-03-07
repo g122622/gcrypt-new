@@ -63,7 +63,7 @@ import getFileType from "@/utils/file/getFileType";
 import { computed, ref, onMounted, onUnmounted } from "vue";
 import { useMainStore } from "@/store/main"
 import prettyBytes from "@/utils/prettyBytes";
-import AdapterBase from "@/api/core/types/AdapterBase";
+import IAdapter from "@/api/core/types/IAdapter";
 import { ViewOptions } from "./types/ViewOptions";
 import getThumbnailFromSystem from '@/utils/image/getThumbnailFromSystem'
 import { warn } from "@/utils/gyConsole";
@@ -76,7 +76,7 @@ interface Props {
     viewOptions: ViewOptions,
     singleFileItem: DirSingleItem,
     index: number,
-    adapter: AdapterBase,
+    adapter: IAdapter,
     isSelected: boolean
 }
 const props = defineProps<Props>()

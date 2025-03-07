@@ -15,7 +15,7 @@
 import ASSERT from "@/utils/ASSERT";
 import { error } from "@/utils/gyConsole";
 import crypto from "crypto";
-import EncryptionEngineBase from "../types/EncryptionEngineBase";
+import IEncryptionEngine from "../types/IEncryptionEngine";
 import { Buffer } from "buffer";
 import scrypt from "scrypt-js";
 import { isNodeJS } from "@/platform/platform";
@@ -28,7 +28,7 @@ const EncryptConfig = {
     keyLength: 24
 };
 
-class EncryptionEngineAES192 implements EncryptionEngineBase {
+class EncryptionEngineAES192 implements IEncryptionEngine {
     private currentPwd: string = null;
 
     public init(pwd) {

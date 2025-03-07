@@ -11,6 +11,8 @@
  * ------------------------------------
  */
 
+import { error, warn } from "../gyConsole";
+
 interface IDisposable {
     dispose(): Promise<void> | void;
 }
@@ -27,8 +29,12 @@ class Disposable implements IDisposable {
      * @returns 返回入参以便链式调用
      */
     protected _register<T extends IDisposable>(disposable: T): T {
+        if (!disposable) {
+            error("Cannot register null or undefined disposable");
+            return null;
+        }
         if (this._isDisposed) {
-            console.warn("Cannot register disposable on a disposed object");
+            warn("Cannot register disposable on a disposed object");
             disposable.dispose();
         } else {
             this._disposables.add(disposable);

@@ -12,6 +12,16 @@
  * ------------------------------------
  */
 
+// 全局组件
+import VueApp from "./App.vue";
+import BottomTip from "./components/shared/BottomTip.vue";
+import ActionToolBarBase from "./components/shared/ActionToolBarBase.vue";
+import IconBtn from "./components/shared/IconBtn.vue";
+import DialogGenerator from "./components/shared/DialogGenerator.vue";
+import AdvancedList from "./components/shared/AdvancedList.vue";
+import AdvancedTextField from "./components/shared/AdvancedTextField.vue";
+import ToolBarBase from "./components/shared/ToolBarBase.vue";
+
 /* eslint-disable dot-notation */
 import { createApp } from "vue";
 import router from "./router";
@@ -29,16 +39,6 @@ import notification from "./api/notification";
 import JsonViewer from "vue-json-viewer";
 import JsonEditorVue from "json-editor-vue";
 import touch from "vue3-hand-mobile";
-
-// 全局组件
-import VueApp from "./App.vue";
-import BottomTip from "./components/shared/BottomTip.vue";
-import ActionToolBarBase from "./components/shared/ActionToolBarBase.vue";
-import IconBtn from "./components/shared/IconBtn.vue";
-import DialogGenerator from "./components/shared/DialogGenerator.vue";
-import AdvancedList from "./components/shared/AdvancedList.vue";
-import AdvancedTextField from "./components/shared/AdvancedTextField.vue";
-import ToolBarBase from "./components/shared/ToolBarBase.vue";
 import LocalFileAdapter from "./api/core/adapters/localFiles/adapter";
 import logger from "./utils/helpers/Logger";
 import { loadCss, loadScript } from "./utils/DOM/loadResource";
@@ -46,6 +46,8 @@ import { error, success } from "./utils/gyConsole";
 import electron from "./platform/electron/electronAPI";
 import mock from "./platform/mock";
 import setViewportScale from "./utils/DOM/setViewportScale";
+import { Disposable, IDisposable } from "./utils/helpers/Disposable";
+import { allowPageClose, preventPageClose } from "./utils/DOM/closePrevension";
 
 let pinia;
 /**
@@ -82,7 +84,10 @@ let pinia;
  * 其他类型的错误一律抛出异常
  */
 
-class ApplicationRenderer {
+/**
+ * App的主类
+ */
+class ApplicationRenderer extends Disposable {
     private AppInstance: ReturnType<typeof createApp>;
     private MainStore: ReturnType<typeof useMainStore>;
     private SettingsStore: ReturnType<typeof useSettingsStore>;
@@ -166,6 +171,12 @@ class ApplicationRenderer {
             // 内容缩放
             // document.body.style.zoom = `${this.SettingsStore.getSetting("ui_scale")}%`;
             setViewportScale(this.SettingsStore.getSetting("ui_scale"));
+            // 阻止标签页关闭
+            if (this.SettingsStore.getSetting("prevent_tab_close")) {
+                preventPageClose();
+            } else {
+                allowPageClose();
+            }
         }, 100);
     }
 
@@ -279,6 +290,14 @@ class ApplicationRenderer {
         });
     }
 
+    private registerDisposables() {
+        this._register({
+            dispose: async () => {
+                await this.MainStore.inactivateAllFiles();
+            }
+        });
+    }
+
     public async initAll() {
         const startTime = Date.now();
         console.log(mock());
@@ -294,6 +313,7 @@ class ApplicationRenderer {
         this.applySettings();
         this.showNotesInConsole();
         this.initFroalaEditor();
+        this.registerDisposables();
         if (utils.env === "development") {
             // this.toggleDevTools()
         }
@@ -305,12 +325,21 @@ class ApplicationRenderer {
     }
 
     constructor() {
+        super();
         this.initAll();
+    }
+
+    public registerGlobalDisposable(disposable: IDisposable) {
+        this._register(disposable);
     }
 }
 
-(function () {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const GcryptApp = new ApplicationRenderer();
-    // window["runTest"] = test;
-})();
+// (function () {
+//     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+//     const GcryptApp = new ApplicationRenderer();
+//     // window["runTest"] = test;
+// })();
+
+const GcryptApp = new ApplicationRenderer();
+
+export default GcryptApp;

@@ -17,25 +17,39 @@ import Addr from "@/api/core/common/Addr";
 import DirSingleItem from "@/api/core/types/DirSingleItem";
 import FileTable from "@/api/core/types/FileTable";
 import lodash from "lodash";
-import AdapterBase from "@/api/core/types/AdapterBase";
-import KVPEngineBase from "@/api/core/types/KVPEngineBase";
+import IAdapter from "@/api/core/types/IAdapter";
+import IKVPEngine from "@/api/core/types/IKVPEngine";
 import calcBufSize from "@/utils/calcBufSize";
-import { success, warn } from "@/utils/gyConsole";
+import { error, success, warn } from "@/utils/gyConsole";
 import { Buffer } from "buffer";
+import { Disposable } from "@/utils/helpers/Disposable";
 
-class GcryptV1Adapter implements AdapterBase {
-    private KVPEngine: KVPEngineBase;
+class GcryptV1Adapter extends Disposable implements IAdapter {
+    private KVPEngine: IKVPEngine;
     private currentDirectory: Addr;
     private currentFileTable: FileTable;
     private cachedFileTables: Array<{ fileTable: FileTable; dir: Addr }> = [];
     public adapterGuid: string;
+
+    constructor() {
+        super();
+        this._register({
+            dispose: () => {
+                this.cachedFileTables = null;
+            }
+        });
+    }
 
     /**
      * 初始化adapter，若不存在，则根据传入的src的末尾文件名解析出storeName
      * @param storageEntrySrc example:C:/gy/store.json
      * @param pwd
      */
-    public async initAdapter(KVPEngine: KVPEngineBase, adapterGuid = null) {
+    public async initAdapter(KVPEngine: IKVPEngine, adapterGuid = null) {
+        if (this.KVPEngine.isDisposed) {
+            error("GcryptV1Adapter::initAdapter::KVPEngineAlreadyDisposed");
+            throw new Error("GcryptV1Adapter::initAdapter::KVPEngineAlreadyDisposed");
+        }
         this.adapterGuid = adapterGuid ?? sharedUtils.getHash(16);
         this.KVPEngine = KVPEngine;
         // 若为第一次使用该库，则初始化
@@ -51,6 +65,8 @@ class GcryptV1Adapter implements AdapterBase {
             await this.KVPEngine.setData(entryKey, Buffer.from(JSON.stringify(fileTableData)));
             success("GcryptV1Adapter::initAdapter::FirstInit::Done");
         }
+
+        this._register(this.KVPEngine);
 
         this.currentDirectory = new Addr("");
         this.currentFileTable = await this._getFileTable(this.currentDirectory);

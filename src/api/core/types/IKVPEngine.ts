@@ -1,5 +1,5 @@
 /**
- * File: \src\api\core\types\KVPEngineBase.ts
+ * File: \src\api\core\types\IKVPEngine.ts
  * Project: Gcrypt
  * Created Date: 2023-11-26 17:14:30
  * Author: Guoyi
@@ -12,25 +12,26 @@
  * ------------------------------------
  */
 
-import EncryptionEngineBase from "./EncryptionEngineBase";
+import IEncryptionEngine from "./IEncryptionEngine";
+import { Disposable } from "@/utils/helpers/Disposable";
 
 /**
  * 这是KVPEngine的抽象类，是所有KVPEngine的实现标准
  *
  */
-abstract class KVPEngineBase {
+abstract class IKVPEngine extends Disposable {
     /**
      * 初始化KVPEngine。
      * @param entryFileSrc 入口文件路径
      * @param encryptionEngine 加密引擎
      */
-    public abstract init(entryFileSrc: string, encryptionEngine: EncryptionEngineBase): Promise<void>;
+    public abstract init(entryFileSrc: string, encryptionEngine: IEncryptionEngine): Promise<void>;
     /**
      * 传入配置而不是文件路径来初始化KVPEngine。与上面的init方法只能二选一，不能同时调用。
      * @param config 配置对象
      * @param encryptionEngine
      */
-    public abstract initWithConfig?(config: any, encryptionEngine: EncryptionEngineBase): Promise<void>;
+    public abstract initWithConfig?(config: any, encryptionEngine: IEncryptionEngine): Promise<void>;
     public abstract hasData(key: string): Promise<boolean>;
     /**
      * 获取数据。如果数据不存在，返回null。
@@ -47,4 +48,4 @@ abstract class KVPEngineBase {
     public abstract deleteData(key: string): Promise<void>;
 }
 
-export default KVPEngineBase;
+export default IKVPEngine;
