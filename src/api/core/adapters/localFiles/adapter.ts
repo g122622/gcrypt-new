@@ -18,10 +18,11 @@ import Addr from "@/api/core/common/Addr";
 import DirSingleItem from "@/api/core/types/DirSingleItem";
 import FileTable from "@/api/core/types/FileTable";
 import lodash from "lodash";
-import AdapterBase from "@/api/core/types/AdapterBase";
+import IAdapter from "@/api/core/types/IAdapter";
 import VFS from "@/utils/file/virtualFS";
 import path from "path";
 import { Buffer } from "buffer";
+import { Disposable } from "@/utils/helpers/Disposable";
 
 const forbiddenDirents = [
     "System Volume Information",
@@ -34,10 +35,14 @@ const forbiddenDirents = [
     "pagefile.sys"
 ];
 
-class LocalFileAdapter implements AdapterBase {
+class LocalFileAdapter extends Disposable implements IAdapter {
     private currentDirectory: Addr;
     private currentFileTable: FileTable;
     public adapterGuid: string;
+
+    constructor() {
+        super();
+    }
 
     /**
      * 初始化adapter

@@ -12,13 +12,13 @@
  * ------------------------------------
  */
 
-import EncryptionEngineBase from "../types/EncryptionEngineBase"
+import IEncryptionEngine from "../types/IEncryptionEngine";
 
-class EncryptionEngineNoop implements EncryptionEngineBase {
-    private currentPwd: string = null
+class EncryptionEngineNoop implements IEncryptionEngine {
+    private currentPwd: string = null;
 
     public init(pwd) {
-        this.currentPwd = pwd
+        this.currentPwd = pwd;
     }
 
     /**
@@ -26,21 +26,21 @@ class EncryptionEngineNoop implements EncryptionEngineBase {
      * @param rawData
      */
     public encrypt = function (rawData: Buffer): Promise<Buffer> {
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             // console.log('收到加密任务', rawData.toString())
-            resolve(rawData)
-        })
-    }
+            resolve(rawData);
+        });
+    };
 
     /**
      * 解密数据
      * @param rawBufData 被加密的原始数据
      */
     public decrypt = function (rawBufData: Buffer): Promise<Buffer> {
-        return new Promise((resolve) => {
-            resolve(rawBufData)
-        })
-    }
+        return new Promise(resolve => {
+            resolve(rawBufData);
+        });
+    };
 }
 
-export default EncryptionEngineNoop
+export default EncryptionEngineNoop;

@@ -13,10 +13,11 @@
  */
 
 import VFS from "@/utils/file/virtualFS";
-import KVPEngineBase from "../types/KVPEngineBase";
-import EncryptionEngineBase from "../types/EncryptionEngineBase";
+import IKVPEngine from "../types/IKVPEngine";
+import IEncryptionEngine from "../types/IEncryptionEngine";
 import getDigest from "@/api/hash/getDigest";
 import { Buffer } from "buffer";
+import { Disposable } from "@/utils/helpers/Disposable";
 
 const calcDataFileSrc = (entryJsonSrc, dataFileName: string) => {
     let foo = entryJsonSrc.split("/");
@@ -25,8 +26,8 @@ const calcDataFileSrc = (entryJsonSrc, dataFileName: string) => {
     return foo.join("/");
 };
 
-class KVPEngineFolder implements KVPEngineBase {
-    private encryptionEngine: EncryptionEngineBase;
+class KVPEngineFolder extends Disposable implements IKVPEngine {
+    private encryptionEngine: IEncryptionEngine;
     private storeEntryJsonSrc;
 
     /**

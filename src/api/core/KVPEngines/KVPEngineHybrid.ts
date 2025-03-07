@@ -18,10 +18,11 @@ import calcBufSize from "@/utils/calcBufSize";
 import ASSERT from "@/utils/ASSERT";
 import sharedUtils from "@/utils/sharedUtils";
 import { ILock, Lock, NoopLock } from "@/utils/helpers/Lock";
-import KVPEngineBase from "../types/KVPEngineBase";
+import IKVPEngine from "../types/IKVPEngine";
 import VFS from "@/utils/file/virtualFS";
 import EntryJson from "../types/EntryJson";
 import { Buffer } from "buffer";
+import { Disposable } from "@/utils/helpers/Disposable";
 
 const config = {
     blockInclusionThreshold: 12 * 1024, // 小于这个值的value将被放在block内
@@ -29,7 +30,7 @@ const config = {
     blockSizeThreshold: 128 * 1024 // 尺寸大于这个值的block将不会被放入新的value
 };
 
-class KVPEngineHybrid implements KVPEngineBase {
+class KVPEngineHybrid extends Disposable implements IKVPEngine {
     // keyReferenceMap用于快速查询某个键是否在某个block内，若是，返回block名称
     private keyReferenceMap = {};
     // blockUsageMap用于快速查询某个block的存在情况和空间使用情况
@@ -37,7 +38,16 @@ class KVPEngineHybrid implements KVPEngineBase {
     // 用于确保操作的原子性
     private opLock: ILock;
 
-    private baseEngine: KVPEngineBase; // should not be changed after init
+    private baseEngine: IKVPEngine; // should not be changed after init
+
+    constructor() {
+        super();
+        this._register({
+            dispose: () => {
+                this.opLock.unlockAll();
+            }
+        });
+    }
 
     /**
      * 初始化jsonStorage
@@ -58,6 +68,7 @@ class KVPEngineHybrid implements KVPEngineBase {
             default:
                 throw new Error("KVPEngineHybrid::init::unknownStoreType: " + EntryJson.storeType);
         }
+        this._register(this.baseEngine);
         await this.baseEngine.init(storeEntryJsonSrc, encryptionEngine);
         if (await this.baseEngine.hasData("@keyReferenceMap")) {
             this.keyReferenceMap = JSON.parse((await this.baseEngine.getData("@keyReferenceMap")).toString());

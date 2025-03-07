@@ -1,5 +1,5 @@
-import KVPEngineBase from "../../types/KVPEngineBase";
-import EncryptionEngineBase from "../../types/EncryptionEngineBase";
+import IKVPEngine from "../../types/IKVPEngine";
+import IEncryptionEngine from "../../types/IEncryptionEngine";
 import RequestURLBuilder from "@/utils/http/RequestURLBuilder";
 import axios from "axios";
 import getDigest from "@/api/hash/getDigest";
@@ -14,7 +14,7 @@ import LRUCache from "@/utils/helpers/LRUCache";
 /**
  * 七牛云存储实现的键值对引擎
  */
-export default class KVPEngineQiniuV3Readonly extends Disposable implements KVPEngineBase {
+export default class KVPEngineQiniuV3Readonly extends Disposable implements IKVPEngine {
     protected config!: {
         isHttps: boolean;
         domain: string;
@@ -22,7 +22,7 @@ export default class KVPEngineQiniuV3Readonly extends Disposable implements KVPE
         ACCESS_KEY: string;
         SECRET_KEY: string;
     };
-    protected encryptionEngine!: EncryptionEngineBase;
+    protected encryptionEngine!: IEncryptionEngine;
     public useMD5Hashing: boolean = true; // 仅仅用于测试，实际使用时请设置为 true
     protected LRUCache: LRUCache = null;
 
@@ -39,7 +39,7 @@ export default class KVPEngineQiniuV3Readonly extends Disposable implements KVPE
         this._register(this.LRUCache);
     }
 
-    public async init(entryFileSrc: string, encryptionEngine: EncryptionEngineBase) {
+    public async init(entryFileSrc: string, encryptionEngine: IEncryptionEngine) {
         const json = JSON.parse(await VFS.readFile(entryFileSrc, "utf-8")) as EntryJson;
         this.config = {
             isHttps: json.config.remote.isHttps,
@@ -51,10 +51,7 @@ export default class KVPEngineQiniuV3Readonly extends Disposable implements KVPE
         this.encryptionEngine = encryptionEngine;
     }
 
-    public async initWithConfig(
-        config: typeof KVPEngineQiniuV3Readonly.prototype.config,
-        encryptionEngine: EncryptionEngineBase
-    ) {
+    public async initWithConfig(config: typeof KVPEngineQiniuV3Readonly.prototype.config, encryptionEngine: IEncryptionEngine) {
         this.config = config;
         this.encryptionEngine = encryptionEngine;
     }

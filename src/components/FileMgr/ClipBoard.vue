@@ -29,7 +29,7 @@
 <script setup lang="ts">
 import { ref } from "vue"
 import AdvancedList from "@/components/shared/AdvancedList.vue"
-import AdapterBase from "@/api/core/types/AdapterBase";
+import IAdapter from "@/api/core/types/IAdapter";
 import { ClipBoardItem } from "./types/ClipBoardItem";
 import Addr from "@/api/core/common/Addr";
 import { useTaskStore } from "@/store/task";
@@ -40,7 +40,7 @@ import notification from "@/api/notification";
 import ResponsiveMenu from "@/components/ResponsiveLayout/ResponsiveMenu.vue";
 
 interface Props {
-    adapter: AdapterBase,
+    adapter: IAdapter,
     currentDir: Addr,
     selectedItems: Set<DirSingleItem>
 }

@@ -1,14 +1,14 @@
 import * as qiniu from "qiniu-js";
 import { Buffer } from "buffer";
-import KVPEngineBase from "../../types/KVPEngineBase";
-import EncryptionEngineBase from "../../types/EncryptionEngineBase";
+import IKVPEngine from "../../types/IKVPEngine";
+import IEncryptionEngine from "../../types/IEncryptionEngine";
 import RequestURLBuilder from "@/utils/http/RequestURLBuilder";
 import axios from "axios";
 
 /**
  * 七牛云存储实现的键值对引擎
  */
-export class QiniuKVPEngine extends KVPEngineBase {
+export class QiniuKVPEngine extends IKVPEngine {
     private config!: {
         isHttps: boolean;
         domain: string;
@@ -16,9 +16,9 @@ export class QiniuKVPEngine extends KVPEngineBase {
         uploadToken: string;
         manageToken: string;
     };
-    private encryptionEngine!: EncryptionEngineBase;
+    private encryptionEngine!: IEncryptionEngine;
 
-    public init(entryFileSrc: string, encryptionEngine: EncryptionEngineBase) {
+    public init(entryFileSrc: string, encryptionEngine: IEncryptionEngine) {
         const config = JSON.parse(entryFileSrc);
         this.config = {
             isHttps: config.isHttps,

@@ -5,7 +5,7 @@ import VFS from "@/utils/file/virtualFS";
 import getExtName from "@/utils/file/getExtName";
 import sharedUtils from "@/utils/sharedUtils";
 import FileWatcher from "./FileWatcher";
-import AdapterBase from "./core/types/AdapterBase";
+import IAdapter from "./core/types/IAdapter";
 import { useSettingsStore } from "@/store/settings";
 import { useMainStore } from "@/store/main";
 import emitter from "@/eventBus";
@@ -38,7 +38,7 @@ emitter.on("LifeCycle::finishedLoadingApp", () => {
 
 class File extends Disposable {
     private data;
-    private adapter: AdapterBase;
+    private adapter: IAdapter;
     private fileWatcher: FileWatcher = null;
     public filename: string;
     private fileguid: string;
@@ -73,7 +73,7 @@ class File extends Disposable {
         this.fileType = FileType.Ref;
     }
 
-    public async fromAdapter(adapter: AdapterBase, filename: string) {
+    public async fromAdapter(adapter: IAdapter, filename: string) {
         this.adapter = adapter;
         this.filename = filename;
         this.fileType = FileType.Adapter;

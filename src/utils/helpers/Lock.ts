@@ -13,8 +13,12 @@
  */
 
 abstract class ILock {
-    public abstract lock(): void;
+    /**
+     * 返回一个promise，直到锁被释放，这个promise才被兑现。
+     */
+    public abstract lock(): Promise<void>;
     public abstract unlock(): void;
+    public abstract unlockAll(): void;
 }
 
 class Lock implements ILock {
@@ -36,11 +40,23 @@ class Lock implements ILock {
             this.lockedQueue = null;
         }
     }
+
+    public unlockAll() {
+        if (this.lockedQueue) {
+            while (this.lockedQueue.length) {
+                this.lockedQueue.shift()();
+            }
+            this.lockedQueue = null;
+        }
+    }
 }
 
 class NoopLock implements ILock {
-    public lock() {}
+    public lock() {
+        return Promise.resolve();
+    }
     public unlock() {}
+    public unlockAll() {}
 }
 
 export { Lock, NoopLock, ILock };
