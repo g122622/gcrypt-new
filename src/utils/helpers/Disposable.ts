@@ -31,12 +31,15 @@ class Disposable implements IDisposable {
     protected _register<T extends IDisposable>(disposable: T): T {
         if (!disposable) {
             error("Cannot register null or undefined disposable");
-            return null;
+            return disposable;
         }
         if (this._isDisposed) {
             warn("Cannot register disposable on a disposed object");
             disposable.dispose();
         } else {
+            if ((disposable as unknown as Disposable) === this) {
+                throw new Error("Cannot register a disposable on itself!");
+            }
             this._disposables.add(disposable);
         }
         return disposable;
@@ -45,34 +48,40 @@ class Disposable implements IDisposable {
     /**
      * 释放所有资源。这个函数不允许被重写。
      */
-    dispose(): void | Promise<void> {
+    dispose() {
         if (this._isDisposed) return;
         // 遍历释放所有资源
-        try {
-            const promises = []; // 存储所有异步任务的 Promise
-            this._disposables.forEach(disposable => {
-                try {
-                    const promise = disposable.dispose();
-                    if (promise && typeof promise.then === "function") {
-                        promises.push(promise);
-                    }
-                } catch (e) {
-                    console.error("Error disposing object:", e);
+        const promises = []; // 存储所有异步任务的 Promise
+        this._disposables.forEach(disposable => {
+            try {
+                const promise = disposable.dispose();
+                if (promise && typeof promise.then === "function") {
+                    promises.push(promise);
                 }
-            });
-            if (promises.length > 0) {
-                return Promise.all(promises).then(() => {
-                    this._disposables.clear();
-                    this._isDisposed = true;
-                }).catch(e => {
-                    console.error("Error disposing objects:", e);
-                    this._isDisposed = false;
-                });
+            } catch (e) {
+                console.error("Error disposing object:", e);
             }
-        } finally {
-            this._disposables.clear();
-        }
-        this._isDisposed = true;
+        });
+
+        return Promise.all(promises)
+            .then(() => {
+                this._disposables.clear();
+
+                // 清除这个对象的所有属性（除了 _isDisposed）
+                for (const key in this) {
+                    if (key !== "_isDisposed" && this.hasOwnProperty(key)) {
+                        delete this[key];
+                    }
+                }
+
+                // success("Disposed object successfully");
+
+                this._isDisposed = true;
+            })
+            .catch(e => {
+                console.error("Error disposing objects:", e);
+                this._isDisposed = false;
+            });
     }
 
     /**

@@ -46,10 +46,6 @@ class GcryptV1Adapter extends Disposable implements IAdapter {
      * @param pwd
      */
     public async initAdapter(KVPEngine: IKVPEngine, adapterGuid = null) {
-        if (this.KVPEngine.isDisposed) {
-            error("GcryptV1Adapter::initAdapter::KVPEngineAlreadyDisposed");
-            throw new Error("GcryptV1Adapter::initAdapter::KVPEngineAlreadyDisposed");
-        }
         this.adapterGuid = adapterGuid ?? sharedUtils.getHash(16);
         this.KVPEngine = KVPEngine;
         // 若为第一次使用该库，则初始化
