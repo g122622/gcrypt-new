@@ -2,6 +2,8 @@ import notification from "@/api/notification";
 import getMimeType from "../file/getMimeType";
 import { IDisposable } from "../helpers/Disposable";
 import getFileType from "../file/getFileType";
+import changeFavicon from "../DOM/changeFavicon";
+import generateThumbnailUsingCanvas from "../image/generateThumbnailUsingCanvas";
 
 let number = 1;
 
@@ -82,6 +84,18 @@ export default function openBufferFileInNewTab(buffer: ArrayBuffer, fileName: st
 
         newTab.document.close(); // Closes an output stream and forces the sent data to display.
         newTab.document.title = `[${number}] ${fileName}`;
+        // 将changeFavicon函数注入到newTab中(通过script标签)
+        generateThumbnailUsingCanvas(url, {
+            width: 32,
+            keepAspectRatio: true,
+            outputType: "dataURL"
+        }).then(dataURL => {
+            console.log("生成的缩略图数据URL：" + dataURL);
+            newTab.eval(`console.log("开始注入代码")`);
+            newTab.eval(`(${changeFavicon.toString()})('${dataURL}')`);
+            newTab.eval(`console.log("代码注入完成")`);
+        });
+
         number++;
 
         // 安全释放URL（当窗口关闭时）

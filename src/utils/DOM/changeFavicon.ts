@@ -1,5 +1,6 @@
 /**
  * 动态切换页面 favicon 的函数
+ * @note 这个函数必须零状态、零外部依赖。因为要放在类似eval这种函数中在其他标签页执行，不能依赖其他函数。
  * @param dataURL - 图片的 dataURL 字符串，格式如：data:image/png;base64,...
  */
 const changeFavicon = (dataURL: string): void => {
