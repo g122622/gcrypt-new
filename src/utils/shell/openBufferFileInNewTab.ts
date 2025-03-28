@@ -86,14 +86,16 @@ export default function openBufferFileInNewTab(buffer: ArrayBuffer, fileName: st
         newTab.document.title = `[${number}] ${fileName}`;
         // 将changeFavicon函数注入到newTab中(通过script标签)
         generateThumbnailUsingCanvas(url, {
-            width: 32,
+            width: 16,
             keepAspectRatio: true,
             outputType: "dataURL"
         }).then(dataURL => {
             console.log("生成的缩略图数据URL：" + dataURL);
-            newTab.eval(`console.log("开始注入代码")`);
-            newTab.eval(`(${changeFavicon.toString()})('${dataURL}')`);
-            newTab.eval(`console.log("代码注入完成")`);
+            newTab.eval(`
+                console.log("开始执行注入的代码");
+                (${changeFavicon.toString()})('${dataURL}');
+                console.log("注入的代码执行完毕")
+            `);
         });
 
         number++;

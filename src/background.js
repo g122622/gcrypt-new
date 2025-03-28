@@ -15,7 +15,7 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 'use strict'
 
-import { app, protocol, BrowserWindow, ipcMain, screen } from 'electron'
+import { app, protocol, BrowserWindow, ipcMain, screen, dialog } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 // import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer'
 const isDevelopment = process.env.NODE_ENV !== 'production'
@@ -54,6 +54,9 @@ class ApplicationMain {
     initSingleInstanceLock() {
         if (!app.requestSingleInstanceLock() &&
             this.settingsStore.get("settings").find(item => item.name === 'use_single_instance_lock').value) {
+            // 显示提示弹框
+            dialog.showErrorBox('错误', '程序已在运行中，请勿重复打开！（如需多开，请关闭设置中的“开启单例锁”。但是不建议这么做，因为多实例运行可能会导致数据一致性问题。）')
+            // 退出程序
             app.quit()
         }
     }
