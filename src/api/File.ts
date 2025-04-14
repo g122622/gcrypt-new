@@ -18,7 +18,6 @@ import { isNodeJS } from "@/platform/platform";
 import downloadBufferFile from "@/utils/shell/downloadBufferFile";
 import openBufferFileInNewTab from "@/utils/shell/openBufferFileInNewTab";
 import { Disposable } from "@/utils/helpers/Disposable";
-import changeFavicon from "@/utils/DOM/changeFavicon";
 
 let taskStore = null;
 let settingsStore = null;
@@ -139,7 +138,6 @@ class File extends Disposable {
     }
 
     public async openInNewTab() {
-        console.log(changeFavicon);
         this._register(openBufferFileInNewTab(await this.read(), this.filename));
     }
 

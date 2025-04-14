@@ -14,12 +14,14 @@ const changeFavicon = (dataURL: string): void => {
     }
 
     const mimeType = mimeMatch[1]; // 提取 MIME 类型，如 image/png
+    console.log(`Setting favicon to ${mimeType}`);
 
     // 查询所有相关 link 标签（包含 icon 或 shortcut icon 的 rel 属性）
     const selectors = ['link[rel~="icon"]', 'link[rel="shortcut icon"]'];
     const links = Array.from(document.querySelectorAll(selectors.join(","))) as HTMLLinkElement[];
 
     if (links.length > 0) {
+        console.log(`Replacing ${links.length} existing link tags`);
         // 替换现有 link 标签以触发浏览器更新
         links.forEach(link => {
             const clone = link.cloneNode() as HTMLLinkElement; // 克隆节点保持其他属性
@@ -28,12 +30,19 @@ const changeFavicon = (dataURL: string): void => {
             link.parentNode?.replaceChild(clone, link); // 用克隆节点替换原节点
         });
     } else {
+        console.log("Creating new link tag");
         // 创建新 link 标签（现代浏览器标准用法）
         const link = document.createElement("link");
         link.rel = "icon";
         link.type = mimeType;
         link.href = dataURL;
         document.head.appendChild(link);
+
+        const link2 = document.createElement("link");
+        link2.rel = "shortcut icon";
+        link2.type = mimeType;
+        link2.href = dataURL;
+        document.head.appendChild(link2);
     }
 
     // 兼容性处理：部分浏览器需要触发重绘
