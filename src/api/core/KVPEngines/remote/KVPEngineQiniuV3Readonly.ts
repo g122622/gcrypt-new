@@ -23,8 +23,16 @@ export default class KVPEngineQiniuV3Readonly extends Disposable implements IKVP
         SECRET_KEY: string;
     };
     protected encryptionEngine!: IEncryptionEngine;
-    public useMD5Hashing: boolean = true; // 仅仅用于测试，实际使用时请设置为 true
+    protected _useMD5Hashing: boolean = true; // 仅仅用于测试，实际使用时请设置为 true
     protected LRUCache: LRUCache = null;
+
+    get useMD5Hashing(): boolean {
+        return this._useMD5Hashing;
+    }
+
+    set useMD5Hashing(value: boolean) {
+        this._useMD5Hashing = value;
+    }
 
     constructor() {
         super();
@@ -85,7 +93,7 @@ export default class KVPEngineQiniuV3Readonly extends Disposable implements IKVP
 
     public async hasData(key: string): Promise<boolean> {
         changeGlobalOperationState(`Checking ${key} in Qiniu KV3...`);
-        if (this.useMD5Hashing) {
+        if (this._useMD5Hashing) {
             key = getDigest(Buffer.from(key), "md5");
         }
 
@@ -118,7 +126,7 @@ export default class KVPEngineQiniuV3Readonly extends Disposable implements IKVP
      */
     public async getData(key: string): Promise<Buffer> {
         changeGlobalOperationState(`Downloading ${key} from Qiniu KV3...`);
-        if (this.useMD5Hashing) {
+        if (this._useMD5Hashing) {
             key = getDigest(Buffer.from(key), "md5");
         }
 

@@ -29,7 +29,7 @@ export default class KVPEngineQiniuV3 extends KVPEngineQiniuV3Readonly implement
     }
 
     public async setData(key: string, value: Buffer): Promise<void> {
-        if (this.useMD5Hashing) {
+        if (this._useMD5Hashing) {
             key = getDigest(Buffer.from(key), "md5");
         }
         const file = new File([await this.encryptionEngine.encrypt(value)], key, { type: "application/octet-stream" });
@@ -47,7 +47,7 @@ export default class KVPEngineQiniuV3 extends KVPEngineQiniuV3Readonly implement
     }
 
     public async deleteData(key: string): Promise<void> {
-        if (this.useMD5Hashing) {
+        if (this._useMD5Hashing) {
             key = getDigest(Buffer.from(key), "md5");
         }
         // todo: 实现删除文件

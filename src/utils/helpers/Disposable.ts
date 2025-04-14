@@ -36,6 +36,7 @@ class Disposable implements IDisposable {
         if (this._isDisposed) {
             warn("Cannot register disposable on a disposed object");
             disposable.dispose();
+            return disposable;
         } else {
             if ((disposable as unknown as Disposable) === this) {
                 throw new Error("Cannot register a disposable on itself!");
