@@ -21,6 +21,7 @@
     "clipboard": "^2.0.4",
     "core-js": "^3.8.3",
     "dayjs": "^1.11.7",
+    "jsdom": "^26.1.0",
     "json-editor-vue": "latest",
     "lodash": "^4.17.21",
     "mitt": "^3.0.0",

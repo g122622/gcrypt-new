@@ -7,7 +7,8 @@ export default defineConfig({
     test: {
         alias: {
             "@": path.join(process.cwd(), "src")
-        }
+        },
+        environment: "jsdom",
     },
-    plugins: [vue(), nodePolyfills()]
+    plugins: [vue(), nodePolyfills()],
 });
