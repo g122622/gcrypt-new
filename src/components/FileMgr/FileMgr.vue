@@ -273,6 +273,7 @@ const addList = [
 const ClipBoardRef = ref()
 
 // <生命周期&初始化>
+// #region 生命周期&初始化
 const initAll = async () => {
     isLoading.value = true
 
@@ -308,7 +309,10 @@ onUnmounted(async () => {
     log('FileMgr成功销毁')
 })
 
+// #endregion
+
 // <核心功能-文件相关>
+// #region 核心功能-文件相关
 watch(() => props.directory, async (newVal) => {
     if (newVal) {
         await gotoDir(newVal, true)
@@ -437,6 +441,14 @@ const importFile = async (files: FileList) => {
     }
 }
 
+const handleFileImportClick = () => {
+    let foo: HTMLInputElement = document.querySelector("#file-import")
+    foo.click()
+    foo.onchange = async () => {
+        await importFile(foo.files)
+    }
+}
+
 const deleteFile = async () => {
     if (selectedItems.value.size === 0) {
         return
@@ -469,8 +481,10 @@ const renameFile = async (oldname, newname) => {
         }, { name: `重命名文件 ${oldname} -> ${newname}` }), { runImmediately: true })
     }
 }
+//#endregion
 
-// <UI>
+// <核心功能-UI事件处理，如文件点击、右键菜单相关>
+// #region UI事件处理，如文件点击、右键菜单相关
 const currentPropertiesForRender = ref(null)
 const handlePropertiesClick = (item?: DirSingleItem) => {
     if (item) {
@@ -571,16 +585,10 @@ const getItemMenuList = (item) => {
             }]
     }
 }
-
-const handleFileImportClick = () => {
-    let foo: HTMLInputElement = document.querySelector("#file-import")
-    foo.click()
-    foo.onchange = async () => {
-        await importFile(foo.files)
-    }
-}
+// #endregion
 
 // <外观选择相关>
+// #region 外观选择相关
 const defaultViewOptions = {
     itemDisplayMode: Math.floor(settingsStore.getSetting('filemgr_dafault_display_mode')), // 0 list, 1 item, 2 看图模式
     itemSize: 125, // in px
@@ -780,6 +788,7 @@ const currentFileTableForRender = computed<FileTable['items']>(() => {
     }
     return res
 })
+// #endregion
 
 // <杂项>
 const DialogMgrRef = ref(null)

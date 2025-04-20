@@ -329,6 +329,10 @@ class ApplicationRenderer extends Disposable {
         this.initAll();
     }
 
+    /**
+     * 注册全局可销毁对象
+     * @param disposable 实现了IDisposable接口的对象，需要被统一管理的资源
+     */
     public registerGlobalDisposable(disposable: IDisposable) {
         this._register(disposable);
     }

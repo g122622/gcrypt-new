@@ -19,7 +19,9 @@ export default class KVPEngineQiniuV3 extends KVPEngineQiniuV3Readonly implement
         const encodedPutPolicy: string = qiniu.urlSafeBase64Encode(
             JSON.stringify({
                 scope: `${this.config.bucketName}:${key}`,
-                deadline: Math.floor(Date.now() / 1000) + 60
+                deadline: Math.floor(Date.now() / 1000) + 3600,
+                returnBody: JSON.stringify({
+                })
             })
         );
         const sign = this.hmacSha1(encodedPutPolicy, this.config.SECRET_KEY);

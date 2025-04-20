@@ -38,8 +38,8 @@ export default class KVPEngineQiniuV3Readonly extends Disposable implements IKVP
         super();
         this._register({
             dispose: () => {
-                this.config = undefined as any;
-                this.encryptionEngine = undefined as any;
+                this.config = null as any;
+                this.encryptionEngine = null as any;
             }
         });
         // 这个缓存主要是为了缓存小文件（如元数据、缩略图等），因此单item最大值设为512KB

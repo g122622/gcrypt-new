@@ -44,6 +44,7 @@ import { useTaskStore } from "@/store/task";
 import { isElectron } from "@/platform/platform";
 import SingleWidthPointSwitcher from "./ResponsiveLayout/SingleWidthPointSwitcher.vue";
 import { toggleVConsole } from "@/utils/dev/vconsole";
+import GcryptApp from "@/main";
 
 const mainStore = useMainStore()
 const settingsStore = useSettingsStore()
@@ -156,9 +157,7 @@ const itemList = computed(() => {
                     return
                 }
 
-                if (mainStore.activeFiles.size) {
-                    await mainStore.inactivateAllFiles()
-                }
+                await GcryptApp.dispose()
 
                 if (isElectron()) {
                     electron.ipcRenderer.send('mainService',

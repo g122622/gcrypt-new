@@ -28,6 +28,7 @@
 <script setup lang="ts">
 import { ref, computed, nextTick } from "vue"
 import contextMenuItem from "@/types/contextMenuItem"
+import { useMouse } from "@vueuse/core"
 
 const container = ref<HTMLElement>()
 const coordX = ref<number>(0)
@@ -42,6 +43,7 @@ interface Props {
     width: number,
 }
 const props = defineProps<Props>()
+const { x, y } = useMouse()
 
 // 为了顺利展示分割线
 const computedMenuLists = computed(() => {
@@ -60,13 +62,19 @@ const computedMenuLists = computed(() => {
 const handleRightClick = async (event) => {
     // console.log(event)
     // mock event object for touch devices using vue-hand-mobile
-    if (!Object.hasOwn(event, 'preventDefault')) {
+    if (!('preventDefault' in event)) {
         event = {
             preventDefault: () => { },
             pageX: event.X,
             pageY: event.Y
         }
     }
+    if (event.pageX === 0 && event.pageY === 0) {
+        // 使用当前鼠标位置作为fallback方案
+        event.pageX = x.value
+        event.pageY = y.value
+    }
+    // console.log(event.pageX, event.pageY)
     event.preventDefault()
     // pre-render to get menu's size
     isTransparent.value = true

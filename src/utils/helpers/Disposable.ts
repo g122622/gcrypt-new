@@ -49,10 +49,10 @@ class Disposable implements IDisposable {
     /**
      * 释放所有资源。这个函数不允许被重写。
      */
-    dispose() {
+    async dispose() {
         if (this._isDisposed) return;
         // 遍历释放所有资源
-        const promises = []; // 存储所有异步任务的 Promise
+        const promises = [] as Array<Promise<void>>; // 存储所有异步任务的 Promise
         this._disposables.forEach(disposable => {
             try {
                 const promise = disposable.dispose();

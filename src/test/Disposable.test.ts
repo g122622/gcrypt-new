@@ -70,7 +70,7 @@ describe("Disposable", () => {
         expect((disposable as any)._disposables).toBe(undefined);
     });
 
-    test("资源释放错误应被捕获并记录", () => {
+    test("资源释放错误应被捕获并记录", async () => {
         const errorDisposable = new ErrorDisposable();
         const normalDisposable = new MockDisposable();
         disposable["_register"](errorDisposable);
@@ -78,7 +78,7 @@ describe("Disposable", () => {
 
         const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
-        disposable.dispose();
+        await disposable.dispose();
 
         expect(consoleErrorSpy).toHaveBeenCalledWith("Error disposing object:", expect.any(Error));
         expect(normalDisposable.isDisposed).toBe(true);

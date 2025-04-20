@@ -1,6 +1,6 @@
 <template>
-    <div class="file-item" :class="fileItemClassList" v-ripple ref="fileItemElement" @click="handleClick()"
-        @click.right="handleClick(true)" v-intersect="{
+    <div class="file-item" :class="fileItemClassList" v-ripple ref="fileItemElement" @click="handleClick($event)"
+        @click.right="handleClick($event, true)" v-intersect="{
             handler: onIntersect,
             options: {
                 threshold: 0
@@ -12,18 +12,18 @@
                 {{ `[${index + 1}] ${singleFileItem.name}` }}
             </v-tooltip>
             <!-- 前置内容 -->
-            <div style="display: flex;justify-content: flex-start;align-items: center; height:70%"
+            <div style="display: flex;justify-content: flex-start;align-items: center; height:80%; width:100%"
                 :style="{ flexDirection: (viewOptions.itemDisplayMode === 0 ? 'row' : 'column') }">
                 <template v-if="singleFileItem.type === `folder`">
                     <img :src="`./assets/fileTypes/folder.png`" class="file-types-image" loading="lazy" />
                 </template>
                 <template v-if="singleFileItem.type === `file`">
-                    <img v-if="currentThumbnail" :src="toDataURL(currentThumbnail)" class="file-thumbnail-img"
-                        loading="lazy" />
+                    <img v-if="currentThumbnail && viewOptions.showThumbnails" :src="toDataURL(currentThumbnail)"
+                        class="file-thumbnail-img" loading="lazy" />
                     <img v-else :src="`./assets/fileTypes/${getFileType(singleFileItem.name)}.png`"
                         class="file-types-image" loading="lazy" />
                 </template>
-                <template v-if="singleFileItem.type === `file` && !!currentThumbnail">
+                <template v-if="singleFileItem.type === `file` && !!currentThumbnail && viewOptions.showThumbnails">
                     <img :src="`./assets/fileTypes/${getFileType(singleFileItem.name)}.png`"
                         class="file-types-image-corner" loading="lazy" />
                 </template>
@@ -117,7 +117,12 @@ const markerColor = computed(() => {
     return 'none'
 })
 
-const handleClick = (isRightClick = false) => {
+const handleClick = (event: MouseEvent, isRightClick = false) => {
+    if (!event.isTrusted) {
+        // 非用户触发的事件，不处理
+        // （怀疑是vue-hand-mobile的bug，会在用户鼠标左键点击元素后，一段时间后自动再触发一次事件，导致item选择被取消掉）
+        return
+    }
     if (props.isSelected) {
         if (!isRightClick) {
             emit("unselected")
@@ -132,13 +137,13 @@ const onIntersect = (isIntersectingArg /* , entries, observer */) => {
         isIntersecting.value = true
         return
     }
-    // setTimeout是很重要的优化，降低并发
-    setTimeout(() => {
+    // 降低并发
+    requestIdleCallback(() => {
         isIntersecting.value = isIntersectingArg
-    }, 0)
+    })
 }
 
-// #region --- 缩略图
+// #region 缩略图
 const currentThumbnail = ref<string>('')
 let idleCallbackId = null
 const registerCallbackOfGetThumbnailFromSystem = () => {
@@ -186,7 +191,6 @@ const registerCallbackOfGenerateThumbnail = () => {
         await props.adapter.setExtraMeta(props.singleFileItem.key, 'thumbnail', Buffer.from(currentThumbnail.value))
     })
 }
-// #endregion
 
 onMounted(async () => {
     // 自动创建和加载缩略图相关逻辑
@@ -218,6 +222,7 @@ onUnmounted(() => {
         cancelIdleCallback(idleCallbackId)
     }
 })
+// #endregion
 
 </script>
 
@@ -315,7 +320,7 @@ onUnmounted(() => {
     }
 
     .file-name {
-        max-width: 100px;
+        max-width: calc(100% - 5px);
     }
 }
 

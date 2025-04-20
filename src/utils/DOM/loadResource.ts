@@ -1,19 +1,19 @@
 // 动态创建并插入link元素以加载CSS
-function loadCss(url) {
-    let link = document.createElement("link");
+const loadCss = (url: string) => {
+    const link = document.createElement("link");
     link.rel = "stylesheet";
     link.type = "text/css";
     link.href = url;
     document.head.appendChild(link);
-}
+};
 
 /**
  * 动态创建并插入script元素以加载JavaScript文件
  * @param url 资源路径
  * @param callback 回调函数，成功时传入null，失败时传入Error对象
  */
-function loadScript(url, callback) {
-    let script = document.createElement("script");
+const loadScript = (url: string, callback: (err) => void) => {
+    const script = document.createElement("script");
     script.type = "text/javascript";
     script.src = url;
     if (callback) {
@@ -26,6 +26,6 @@ function loadScript(url, callback) {
         };
     }
     document.head.appendChild(script);
-}
+};
 
 export { loadCss, loadScript };
