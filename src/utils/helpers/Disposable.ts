@@ -91,6 +91,18 @@ class Disposable implements IDisposable {
     get isDisposed(): boolean {
         return this._isDisposed;
     }
+
+    static createDisposableIdleCallback(callback: () => void): IDisposable {
+        const id = requestIdleCallback(callback);
+        return {
+            dispose: () => cancelIdleCallback(id),
+        };
+    }
+
+    registerIdleCallback(callback: () => void): void {
+        const disposable = Disposable.createDisposableIdleCallback(callback);
+        this._register(disposable);
+    }
 }
 
 export { Disposable };

@@ -71,6 +71,7 @@ import sleep from "@/utils/sleep";
 import { Buffer } from "buffer";
 import { isElectron } from "@/platform/platform";
 import generateThumbnailUsingCanvas from "@/utils/image/generateThumbnailUsingCanvas";
+import { Disposable } from "@/utils/helpers/Disposable";
 
 interface Props {
     viewOptions: ViewOptions,
@@ -84,6 +85,8 @@ const emit = defineEmits(['selected', 'unselected'])
 const mainStore = useMainStore()
 // 由于看图模式下排版存在不稳定性，故不启用虚拟列表
 const isIntersecting = ref<boolean>(props.viewOptions.itemDisplayMode === 2)
+// 管理异步idle任务的生命周期
+const disposableCollection = new Disposable()
 
 const toDataURL = (str: string) => {
     const prefix = 'data:image/jpg;base64,'
@@ -138,17 +141,16 @@ const onIntersect = (isIntersectingArg /* , entries, observer */) => {
         return
     }
     // 降低并发
-    requestIdleCallback(() => {
+    disposableCollection.registerIdleCallback(() => {
         isIntersecting.value = isIntersectingArg
     })
 }
 
 // #region 缩略图
 const currentThumbnail = ref<string>('')
-let idleCallbackId = null
 const registerCallbackOfGetThumbnailFromSystem = () => {
     // 尝试从系统获取缩略图，并保存
-    idleCallbackId = requestIdleCallback(async () => {
+    disposableCollection.registerIdleCallback(async () => {
         if (!(await props.adapter.hasExtraMeta(props.singleFileItem.key, 'fileOriginalPath'))) {
             return
         }
@@ -180,7 +182,7 @@ const registerCallbackOfGenerateThumbnail = () => {
     if (getFileType(props.singleFileItem.name) !== 'img') {
         return; // 非图片文件不生成缩略图
     }
-    idleCallbackId = requestIdleCallback(async () => {
+    disposableCollection.registerIdleCallback(async () => {
         const base64Str = (await props.adapter.readFile(props.singleFileItem.name)).toString('base64')
         const dataUrl = `data:image/jpg;base64,${base64Str}`
         const res = await generateThumbnailUsingCanvas(
@@ -218,9 +220,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-    if (idleCallbackId !== null) {
-        cancelIdleCallback(idleCallbackId)
-    }
+    disposableCollection.dispose()
 })
 // #endregion
 

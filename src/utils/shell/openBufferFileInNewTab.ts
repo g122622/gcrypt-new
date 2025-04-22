@@ -37,6 +37,7 @@ export default function openBufferFileInNewTab(buffer: ArrayBuffer, fileName: st
             fileType === "config"
         ) {
             const text = new TextDecoder().decode(buffer);
+            // 对文本内容进行转义，防止XSS攻击
             contentHtml = `<pre style="white-space:pre-wrap;padding:20px;background:#f8f9fa;border-radius:4px;margin:20px;">${text.replace(
                 /[&<>"']/g,
                 m =>
@@ -50,7 +51,11 @@ export default function openBufferFileInNewTab(buffer: ArrayBuffer, fileName: st
             )}</pre>`;
         } else {
             // 其他文件
-            contentHtml = `<a href="${url}" download="${fileName}" style="display:block;text-align:center;padding:20px;color:#0366d6;">
+            contentHtml = `
+            <p style="text-align:center;">
+                This file is not supported for preview. Please download it to view.
+            </p>
+            <a href="${url}" download="${fileName}" style="display:block;text-align:center;padding:20px;color:#0366d6;">
                 Download File (${fileName})
             </a>`;
         }

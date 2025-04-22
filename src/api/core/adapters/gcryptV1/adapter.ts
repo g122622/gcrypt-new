@@ -170,47 +170,51 @@ class GcryptV1Adapter extends Disposable implements IAdapter {
      */
     public async writeFile(filename: string, data: Buffer | string, dir?: Addr): Promise<string> {
         let oldDir = this.currentDirectory;
-        await this.changeCurrentDirectory(dir);
+        try {
+            await this.changeCurrentDirectory(dir);
 
-        let bufData: Buffer = typeof data === "string" ? Buffer.from(data) : data;
-        let key: string;
-        let newDirItem: DirSingleItem;
-        const currentDate = Date.now();
+            let bufData: Buffer = typeof data === "string" ? Buffer.from(data) : data;
+            let key: string;
+            let newDirItem: DirSingleItem;
+            const currentDate = Date.now();
 
-        // [内存]当前文件表增加一个DirSingleItem，并更新缓存
-        if (await this.exists(filename)) {
-            const idx = this.currentFileTable.items.findIndex(item => item.name === filename);
-            newDirItem = this.currentFileTable.items.splice(idx, 1)[0];
-            key = newDirItem.key;
-            // 修改元数据
-            newDirItem.meta.modifiedTime = currentDate;
-            newDirItem.meta.size = calcBufSize(bufData);
-        } else {
-            key = sharedUtils.getHash(32);
-            newDirItem = {
-                name: filename,
-                type: "file",
-                meta: {
-                    modifiedTime: currentDate,
-                    createdTime: currentDate,
-                    accessedTime: currentDate,
-                    size: calcBufSize(bufData)
-                },
-                key,
-                isSymlink: false,
-                extraMetaKeysList: []
-            };
+            // [内存]当前文件表增加一个DirSingleItem，并更新缓存
+            if (await this.exists(filename)) {
+                const idx = this.currentFileTable.items.findIndex(item => item.name === filename);
+                newDirItem = this.currentFileTable.items.splice(idx, 1)[0];
+                key = newDirItem.key;
+                // 修改元数据
+                newDirItem.meta.modifiedTime = currentDate;
+                newDirItem.meta.size = calcBufSize(bufData);
+            } else {
+                key = sharedUtils.getHash(32);
+                newDirItem = {
+                    name: filename,
+                    type: "file",
+                    meta: {
+                        modifiedTime: currentDate,
+                        createdTime: currentDate,
+                        accessedTime: currentDate,
+                        size: calcBufSize(bufData)
+                    },
+                    key,
+                    isSymlink: false,
+                    extraMetaKeysList: []
+                };
+            }
+
+            this.currentFileTable.items.push(newDirItem);
+            this._updateCache();
+
+            // [本地]1.保存更新后的文件列表到本地
+            await this.KVPEngine.setData(this.currentFileTable.selfKey, Buffer.from(JSON.stringify(this.currentFileTable)));
+            // [本地]2.创建文件数据到本地
+            await this.KVPEngine.setData(key, bufData);
+
+            return key;
+        } finally {
+            await this.changeCurrentDirectory(oldDir);
         }
-
-        this.currentFileTable.items.push(newDirItem);
-        this._updateCache();
-        // [本地]1.保存更新后的文件列表到本地
-        await this.KVPEngine.setData(this.currentFileTable.selfKey, Buffer.from(JSON.stringify(this.currentFileTable)));
-        // [本地]2.创建文件数据到本地
-        await this.KVPEngine.setData(key, bufData);
-
-        await this.changeCurrentDirectory(oldDir);
-        return key;
     }
 
     /**
@@ -219,10 +223,13 @@ class GcryptV1Adapter extends Disposable implements IAdapter {
      */
     public async exists(filename: string, dir?: Addr): Promise<boolean> {
         let oldDir = this.currentDirectory;
-        await this.changeCurrentDirectory(dir);
-        const match = this.currentFileTable.items.find(item => item.name === filename);
-        await this.changeCurrentDirectory(oldDir);
-        return !!match;
+        try {
+            await this.changeCurrentDirectory(dir);
+            const match = this.currentFileTable.items.find(item => item.name === filename);
+            return !!match;
+        } finally {
+            await this.changeCurrentDirectory(oldDir);
+        }
     }
 
     /**
@@ -231,76 +238,81 @@ class GcryptV1Adapter extends Disposable implements IAdapter {
      */
     public async mkdir(folderName: string, dir?: Addr): Promise<void> {
         let oldDir = this.currentDirectory;
-        await this.changeCurrentDirectory(dir);
+        try {
+            await this.changeCurrentDirectory(dir);
 
-        // if names conflict
-        if (await this.exists(folderName)) {
+            // if names conflict
+            if (await this.exists(folderName)) {
+                await this.changeCurrentDirectory(oldDir);
+                throw new Error("GcryptV1Adapter::mkdir::FolderAlreadyExisted: " + folderName);
+            }
+            // [内存]当前文件表增加一个DirSingleItem，并更新缓存
+            const dateNum: number = new Date().getTime();
+            const hash = sharedUtils.getHash(32);
+            const foo: DirSingleItem = {
+                name: folderName,
+                type: "folder",
+                meta: {
+                    modifiedTime: dateNum,
+                    createdTime: dateNum,
+                    accessedTime: dateNum,
+                    size: -1
+                },
+                key: hash,
+                isSymlink: false,
+                extraMetaKeysList: []
+            };
+
+            this.currentFileTable.items.push(foo);
+            this._updateCache();
+            // [本地]1.保存更新后的文件列表到本地
+            await this.KVPEngine.setData(this.currentFileTable.selfKey, Buffer.from(JSON.stringify(this.currentFileTable)));
+
+            // [本地]2.创建新的文件列表到本地
+            const fileTableData: FileTable = {
+                selfKey: hash,
+                items: []
+            };
+            await this.KVPEngine.setData(hash, Buffer.from(JSON.stringify(fileTableData)));
+        } finally {
             await this.changeCurrentDirectory(oldDir);
-            throw new Error("GcryptV1Adapter::mkdir::FolderAlreadyExisted: " + folderName);
         }
-        // [内存]当前文件表增加一个DirSingleItem，并更新缓存
-        const dateNum: number = new Date().getTime();
-        const hash = sharedUtils.getHash(32);
-        const foo: DirSingleItem = {
-            name: folderName,
-            type: "folder",
-            meta: {
-                modifiedTime: dateNum,
-                createdTime: dateNum,
-                accessedTime: dateNum,
-                size: -1
-            },
-            key: hash,
-            isSymlink: false,
-            extraMetaKeysList: []
-        };
-
-        this.currentFileTable.items.push(foo);
-        this._updateCache();
-        // [本地]1.保存更新后的文件列表到本地
-        await this.KVPEngine.setData(this.currentFileTable.selfKey, Buffer.from(JSON.stringify(this.currentFileTable)));
-
-        // [本地]2.创建新的文件列表到本地
-        const fileTableData: FileTable = {
-            selfKey: hash,
-            items: []
-        };
-        await this.KVPEngine.setData(hash, Buffer.from(JSON.stringify(fileTableData)));
-
-        await this.changeCurrentDirectory(oldDir);
     }
 
     /**
      * 删除文件系统对象
      * @param filename
      */
-    public async deleteFile(filename: string, dir?: Addr) {
+    public async deleteFile(filename: string, dir?: Addr): Promise<void> {
         let oldDir = this.currentDirectory;
-        await this.changeCurrentDirectory(dir);
+        try {
+            await this.changeCurrentDirectory(dir);
 
-        if (!(await this.exists(filename))) {
-            await this.changeCurrentDirectory(oldDir);
-            throw new Error("GcryptV1Adapter::NotExisted");
-        }
-
-        // 处理递归
-        // if (this.currentFileTable.items.find(item=>item.name === filename).type==='folder'){
-        // }
-
-        let key = null;
-        // [内存]修改文件表
-        this.currentFileTable.items = this.currentFileTable.items.filter(item => {
-            if (item.name === filename) {
-                key = item.key;
+            if (!(await this.exists(filename))) {
+                await this.changeCurrentDirectory(oldDir);
+                throw new Error("GcryptV1Adapter::NotExisted");
             }
-            return item.name !== filename;
-        });
-        this._updateCache();
-        // [本地]删除键值对
-        await this.KVPEngine.deleteData(key);
-        // [本地]保存更新后的文件列表到本地
-        await this.KVPEngine.setData(this.currentFileTable.selfKey, Buffer.from(JSON.stringify(this.currentFileTable)));
-        await this.changeCurrentDirectory(oldDir);
+
+            // 处理递归
+            // if (this.currentFileTable.items.find(item=>item.name === filename).type==='folder'){
+            // }
+
+            let key = null;
+            // [内存]修改文件表
+            this.currentFileTable.items = this.currentFileTable.items.filter(item => {
+                if (item.name === filename) {
+                    key = item.key;
+                }
+                return item.name !== filename;
+            });
+            this._updateCache();
+            // [本地]删除键值对
+            await this.KVPEngine.deleteData(key);
+            // [本地]保存更新后的文件列表到本地
+            await this.KVPEngine.setData(this.currentFileTable.selfKey, Buffer.from(JSON.stringify(this.currentFileTable)));
+        } finally {
+            await this.changeCurrentDirectory(oldDir);
+        }
     }
 
     /**
@@ -309,25 +321,31 @@ class GcryptV1Adapter extends Disposable implements IAdapter {
      * @param newname
      * @param dir
      */
-    public async renameFile(oldname: string, newname: string, dir?: Addr) {
-        let oldDir = this.currentDirectory;
-        await this.changeCurrentDirectory(dir);
-
-        if (await this.exists(oldname)) {
-            // [内存]修改当前文件表DirSingleItem
-            const idx = this.currentFileTable.items.findIndex(item => item.name === oldname);
-            const newDirItem = this.currentFileTable.items.splice(idx, 1)[0];
-            // 修改元数据
-            newDirItem.name = newname;
-            newDirItem.meta.modifiedTime = Date.now();
-            this.currentFileTable.items.push(newDirItem);
-            // 更新缓存
-            this._updateCache();
-            // [本地]保存更新后的文件列表到本地
-            await this.KVPEngine.setData(this.currentFileTable.selfKey, Buffer.from(JSON.stringify(this.currentFileTable)));
+    public async renameFile(oldname: string, newname: string, dir?: Addr): Promise<void> {
+        if (oldname === newname) {
+            return;
         }
 
-        await this.changeCurrentDirectory(oldDir);
+        let oldDir = this.currentDirectory;
+        try {
+            await this.changeCurrentDirectory(dir);
+
+            if (await this.exists(oldname)) {
+                // [内存]修改当前文件表DirSingleItem
+                const idx = this.currentFileTable.items.findIndex(item => item.name === oldname);
+                const newDirItem = this.currentFileTable.items.splice(idx, 1)[0];
+                // 修改元数据
+                newDirItem.name = newname;
+                newDirItem.meta.modifiedTime = Date.now();
+                this.currentFileTable.items.push(newDirItem);
+                // 更新缓存
+                this._updateCache();
+                // [本地]保存更新后的文件列表到本地
+                await this.KVPEngine.setData(this.currentFileTable.selfKey, Buffer.from(JSON.stringify(this.currentFileTable)));
+            }
+        } finally {
+            await this.changeCurrentDirectory(oldDir);
+        }
     }
 
     /**
@@ -336,23 +354,25 @@ class GcryptV1Adapter extends Disposable implements IAdapter {
      * @param srcdir
      * @param dstdir
      */
-    public async createSymlink(objname: string, srcdir: Addr, dstdir: Addr) {
+    public async createSymlink(objname: string, srcdir: Addr, dstdir: Addr): Promise<void> {
         const oldDir = this.currentDirectory;
-        await this.changeCurrentDirectory(srcdir);
+        try {
+            await this.changeCurrentDirectory(srcdir);
 
-        if (await this.exists(objname)) {
-            // [内存]获取文件名对应的src目录项
-            const srcFileItem = this.currentFileTable.items.find(item => item.name === objname);
-            // [内存]修改dst文件表
-            await this.changeCurrentDirectory(dstdir);
-            this.currentFileTable.items.push({ ...srcFileItem, isSymlink: true });
-            // 更新缓存
-            this._updateCache();
-            // [本地]保存更新后的文件列表到本地
-            await this.KVPEngine.setData(this.currentFileTable.selfKey, Buffer.from(JSON.stringify(this.currentFileTable)));
+            if (await this.exists(objname)) {
+                // [内存]获取文件名对应的src目录项
+                const srcFileItem = this.currentFileTable.items.find(item => item.name === objname);
+                // [内存]修改dst文件表
+                await this.changeCurrentDirectory(dstdir);
+                this.currentFileTable.items.push({ ...srcFileItem, isSymlink: true });
+                // 更新缓存
+                this._updateCache();
+                // [本地]保存更新后的文件列表到本地
+                await this.KVPEngine.setData(this.currentFileTable.selfKey, Buffer.from(JSON.stringify(this.currentFileTable)));
+            }
+        } finally {
+            await this.changeCurrentDirectory(oldDir);
         }
-
-        await this.changeCurrentDirectory(oldDir);
     }
 
     /**
@@ -364,28 +384,30 @@ class GcryptV1Adapter extends Disposable implements IAdapter {
      */
     public async moveFile(filename: string, srcdir: Addr, dstdir: Addr) {
         let oldDir = this.currentDirectory;
-        await this.changeCurrentDirectory(srcdir);
+        try {
+            await this.changeCurrentDirectory(srcdir);
 
-        if (await this.exists(filename)) {
-            // [内存]获取文件名对应的src目录项，并且删除
-            const idx = this.currentFileTable.items.findIndex(item => item.name === filename);
-            const srcFileItem = this.currentFileTable.items.splice(idx, 1)[0];
-            // 第一次更新缓存
-            this._updateCache();
-            // [本地]保存更新后的文件列表到本地
-            await this.KVPEngine.setData(this.currentFileTable.selfKey, Buffer.from(JSON.stringify(this.currentFileTable)));
-            // [内存]跳转到dst，修改dst文件表
-            await this.changeCurrentDirectory(dstdir);
-            this.currentFileTable.items.push(srcFileItem);
-            // 第二次更新缓存
-            this._updateCache();
-            // [本地]保存更新后的文件列表到本地
-            await this.KVPEngine.setData(this.currentFileTable.selfKey, Buffer.from(JSON.stringify(this.currentFileTable)));
-        } else {
-            throw new Error("GcryptV1Adapter::NotExisted");
+            if (await this.exists(filename)) {
+                // [内存]获取文件名对应的src目录项，并且删除
+                const idx = this.currentFileTable.items.findIndex(item => item.name === filename);
+                const srcFileItem = this.currentFileTable.items.splice(idx, 1)[0];
+                // 第一次更新缓存
+                this._updateCache();
+                // [本地]保存更新后的文件列表到本地
+                await this.KVPEngine.setData(this.currentFileTable.selfKey, Buffer.from(JSON.stringify(this.currentFileTable)));
+                // [内存]跳转到dst，修改dst文件表
+                await this.changeCurrentDirectory(dstdir);
+                this.currentFileTable.items.push(srcFileItem);
+                // 第二次更新缓存
+                this._updateCache();
+                // [本地]保存更新后的文件列表到本地
+                await this.KVPEngine.setData(this.currentFileTable.selfKey, Buffer.from(JSON.stringify(this.currentFileTable)));
+            } else {
+                throw new Error("GcryptV1Adapter::NotExisted");
+            }
+        } catch {
+            await this.changeCurrentDirectory(oldDir);
         }
-
-        await this.changeCurrentDirectory(oldDir);
     }
 
     /**
