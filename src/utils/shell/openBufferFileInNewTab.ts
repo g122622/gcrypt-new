@@ -11,7 +11,7 @@ export default function openBufferFileInNewTab(buffer: ArrayBuffer, fileName: st
     const mimeType = getMimeType(fileName);
     const blob = new Blob([buffer], { type: mimeType });
     const url = URL.createObjectURL(blob);
-    const newTab = window.open(url, fileName) as unknown as Window;
+    const newTab = window.open(url, fileName) as unknown as typeof window;
 
     if (newTab) {
         let contentHtml = "";
