@@ -77,6 +77,7 @@ import emitter from "@/eventBus";
 import electron from "@/platform/electron/electronAPI";
 import { log } from "@/utils/gyConsole";
 import { Buffer } from "buffer";
+import { disableVConsole } from "@/utils/dev/vconsole";
 
 const settingsStore = useSettingsStore()
 const encryptionStore = useEncryptionStore()
@@ -99,6 +100,7 @@ let interval = null
 const lockApp = () => {
     models.isPasswordDialogOpen = true
     electron.ipcRenderer.send('mainService', { code: 'closeDT' })
+    disableVConsole()
 }
 
 const isPasswordAvailable = () => {
