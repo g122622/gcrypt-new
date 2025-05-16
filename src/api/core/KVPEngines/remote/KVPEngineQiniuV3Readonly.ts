@@ -137,6 +137,7 @@ export default class KVPEngineQiniuV3Readonly extends Disposable implements IKVP
             return cachedValue;
         }
 
+        // if not in cache, download from Qiniu KV3
         try {
             const downloadUrl = this.buildDownloadUrl(key);
             const response = await axios.get(downloadUrl, { responseType: "arraybuffer" });
@@ -154,13 +155,23 @@ export default class KVPEngineQiniuV3Readonly extends Disposable implements IKVP
         }
     }
 
-    public async setData(_key: string, _value: Buffer): Promise<void> {
+    public async setData(key: string, value: Buffer): Promise<void> {
+        if (this._useMD5Hashing) {
+            key = getDigest(Buffer.from(key), "md5");
+        }
         // return Promise.reject("Not implemented, because Qiniu KV3 does not support setting data currently.");
+        // 写缓存
+        this.LRUCache.put(key, value);
         return;
     }
 
-    public async deleteData(_key: string): Promise<void> {
+    public async deleteData(key: string): Promise<void> {
+        if (this._useMD5Hashing) {
+            key = getDigest(Buffer.from(key), "md5");
+        }
         // return Promise.reject("Not implemented, because Qiniu KV3 does not support deleting data currently.");
+        // 移除缓存
+        this.LRUCache.remove(key);
         return;
     }
 }

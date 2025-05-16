@@ -276,13 +276,7 @@ const ClipBoardRef = ref()
 // #region 生命周期&初始化
 const initAll = async () => {
     isLoading.value = true
-
     await gotoDir(props.adapter.getCurrentDirectory(), true)
-    watch(viewOptions, (_newVal, oldVal) => {
-        // 保存viewOptions
-        tryToSaveViewOptions(oldVal)
-    }, { deep: true })
-
     isLoading.value = false
 }
 
@@ -321,8 +315,6 @@ watch(() => props.directory, async (newVal) => {
 
 const gotoDir = async (arg: Addr, pushHistory: boolean) => {
     isLoading.value = true
-    // 保存布局选项
-    await tryToSaveViewOptions()
 
     // adapter切换当前目录
     await props.adapter.changeCurrentDirectory(arg)
@@ -601,6 +593,7 @@ const defaultViewOptions = {
 }
 
 const viewOptions = ref<ViewOptions>(defaultViewOptions)
+const isLastViewOptionsUpdateCausedByUserSelection = ref(false) // 是否是用户改动了布局选项设置导致的布局选项更新
 
 /**
  * 尝试保存布局选项
@@ -619,6 +612,18 @@ const tryToSaveViewOptions = async (optionsIn?: ViewOptions) => {
     }
 }
 
+onMounted(async () => {
+    const debouncedTryToSaveViewOptions = lodash.debounce(tryToSaveViewOptions, 500)
+    watch(viewOptions, (_newVal, _oldVal) => {
+        // 保存viewOptions
+        if (isLastViewOptionsUpdateCausedByUserSelection.value) {
+            debouncedTryToSaveViewOptions()
+        } else {
+            isLastViewOptionsUpdateCausedByUserSelection.value = true
+        }
+    }, { deep: true })
+})
+
 /**
  * 尝试加载布局选项
  */
@@ -628,11 +633,13 @@ const tryToGetAndApplyViewOptions = async () => {
     }
     try {
         if (!(await props.adapter.hasExtraMeta(currentFileTable.value.selfKey, 'viewOptions'))) {
+            isLastViewOptionsUpdateCausedByUserSelection.value = false
             viewOptions.value = defaultViewOptions
             return
         }
         const obj = JSON.parse((await props.adapter.getExtraMeta(currentFileTable.value.selfKey, 'viewOptions')).toString())
         if (obj) {
+            isLastViewOptionsUpdateCausedByUserSelection.value = false
             viewOptions.value = obj
         }
     } catch (e) {
