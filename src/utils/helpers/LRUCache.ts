@@ -1,5 +1,6 @@
 import { Disposable } from "@/utils/helpers/Disposable";
 import prettyBytes from "../prettyBytes";
+import IKVPEngine from "@/api/core/types/IKVPEngine";
 
 /**
  * LRUNode 是 LRUCache 中的节点。
@@ -155,4 +156,86 @@ class LRUCache extends Disposable {
     }
 }
 
+/**
+ * LRU 缓存装饰器配置
+ */
+interface LRUConfig {
+    maxSize: number;
+    maxPerKeySize?: number;
+}
+
+/**
+ * 为 KVPEngine 添加 LRU 缓存的类装饰器
+ * @param config 缓存配置
+ */
+function WithLRUCache(config: LRUConfig): ClassDecorator {
+    return function <T extends new (...args: any[]) => IKVPEngine>(target: T) {
+        return class extends target {
+            private cache: LRUCache;
+
+            constructor(...args: any[]) {
+                super(...args);
+                this.cache = new LRUCache(config.maxSize, config.maxPerKeySize);
+            }
+
+            public init(...args: any[]): Promise<void> {
+                return Promise.resolve()
+            }
+
+            public initWithConfig(...args: any[]): Promise<void> {
+                return Promise.resolve()
+            }
+
+            public async hasData(key: string): Promise<boolean> {
+                // 尝试从缓存读取
+                const cachedData = this.cache.get(key);
+                if (cachedData) return true;
+
+                // 缓存未命中则走原始逻辑
+                return super.hasData(key);
+            }
+
+            public async getData(key: string): Promise<Buffer | null> {
+                // 尝试从缓存读取
+                const cachedData = this.cache.get(key);
+                if (cachedData) return cachedData;
+
+                // 缓存未命中则走原始逻辑
+                const data = await super.getData(key);
+
+                if (data) {
+                    // 数据存在时更新缓存（缓存会自动处理大小限制）
+                    this.cache.put(key, data);
+                }
+                return data;
+            }
+
+            public async setData(key: string, buf: Buffer): Promise<void> {
+                // 先更新存储
+                await super.setData(key, buf);
+
+                // 更新缓存（如果超过 maxPerKeySize 会被自动忽略）
+                this.cache.put(key, buf);
+            }
+
+            public async deleteData(key: string): Promise<void> {
+                // 先删除存储
+                await super.deleteData(key);
+
+                // 清理缓存
+                this.cache.remove(key);
+            }
+
+            // 可选：添加缓存统计方法
+            public getCacheStats() {
+                return {
+                    size: this.cache.getcurrentSizeInBytes(),
+                    keys: this.cache.getKeyCount()
+                };
+            }
+        };
+    };
+}
+
 export default LRUCache;
+export { WithLRUCache };
