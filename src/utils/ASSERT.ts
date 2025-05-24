@@ -19,6 +19,7 @@ import { abort } from "process";
 export default function ASSERT(condition: any) {
     if (!condition) {
         error("ASSERT FAILED");
+        console.trace();
         if (process.env.NODE_ENV === "development") {
             return;
         }

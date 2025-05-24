@@ -154,88 +154,85 @@ class LRUCache extends Disposable {
     public getKeyCount(): number {
         return this.hashMap.size;
     }
+
+    /**
+     * 清理过期数据
+     * @note 不会改变缓存的现有配置
+     */
+    public clear(): void {
+        this.hashMap.clear();
+        this.head.next = this.tail;
+        this.tail.prev = this.head;
+        this.currentSizeInBytes = 0;
+    }
 }
 
-/**
- * LRU 缓存装饰器配置
- */
-interface LRUConfig {
-    maxSize: number;
-    maxPerKeySize?: number;
-}
+// /**
+//  * 类装饰器，为实现了IKVPEngine的类添加LRU缓存功能
+//  * @param maxCacheSize 最大缓存大小（字节）
+//  * @param maxPerKeySize 每个键的最大缓存大小（字节）
+//  */
+// function WithLRUCache(maxCacheSize: number, maxPerKeySize?: number) {
+//     return function <T extends new (...args: any[]) => IKVPEngine>(target: T) {
+//         return class extends target {
+//             private cache: LRUCache;
 
-/**
- * 为 KVPEngine 添加 LRU 缓存的类装饰器
- * @param config 缓存配置
- */
-function WithLRUCache(config: LRUConfig): ClassDecorator {
-    return function <T extends new (...args: any[]) => IKVPEngine>(target: T) {
-        return class extends target {
-            private cache: LRUCache;
+//             constructor(...args: any[]) {
+//                 super(...args);
+//                 this.cache = new LRUCache(maxCacheSize, maxPerKeySize);
 
-            constructor(...args: any[]) {
-                super(...args);
-                this.cache = new LRUCache(config.maxSize, config.maxPerKeySize);
-            }
+//                 // 注册缓存清理到Disposable
+//                 const originalDispose = this.dispose.bind(this);
+//                 this.dispose = () => {
+//                     this.cache.dispose();
+//                     originalDispose();
+//                 };
+//             }
 
-            public init(...args: any[]): Promise<void> {
-                return Promise.resolve()
-            }
+//             async getData(key: string): Promise<Buffer | null> {
+//                 // 先从缓存中获取
+//                 const cachedData = this.cache.get(key);
+//                 if (cachedData) {
+//                     return cachedData;
+//                 }
 
-            public initWithConfig(...args: any[]): Promise<void> {
-                return Promise.resolve()
-            }
+//                 // 缓存中没有，调用原始方法获取
+//                 const data = await super.getData(key);
+//                 if (data) {
+//                     this.cache.put(key, data);
+//                 }
 
-            public async hasData(key: string): Promise<boolean> {
-                // 尝试从缓存读取
-                const cachedData = this.cache.get(key);
-                if (cachedData) return true;
+//                 return data;
+//             }
 
-                // 缓存未命中则走原始逻辑
-                return super.hasData(key);
-            }
+//             async setData(key: string, value: Buffer): Promise<void> {
+//                 // 先更新缓存
+//                 this.cache.put(key, value);
 
-            public async getData(key: string): Promise<Buffer | null> {
-                // 尝试从缓存读取
-                const cachedData = this.cache.get(key);
-                if (cachedData) return cachedData;
+//                 // 调用原始方法持久化
+//                 await super.setData(key, value);
+//             }
 
-                // 缓存未命中则走原始逻辑
-                const data = await super.getData(key);
+//             async deleteData(key: string): Promise<void> {
+//                 // 先删除缓存
+//                 this.cache.remove(key);
 
-                if (data) {
-                    // 数据存在时更新缓存（缓存会自动处理大小限制）
-                    this.cache.put(key, data);
-                }
-                return data;
-            }
+//                 // 调用原始方法删除
+//                 await super.deleteData(key);
+//             }
 
-            public async setData(key: string, buf: Buffer): Promise<void> {
-                // 先更新存储
-                await super.setData(key, buf);
+//             async hasData(key: string): Promise<boolean> {
+//                 // 先检查缓存
+//                 if (this.cache.get(key)) {
+//                     return true;
+//                 }
 
-                // 更新缓存（如果超过 maxPerKeySize 会被自动忽略）
-                this.cache.put(key, buf);
-            }
-
-            public async deleteData(key: string): Promise<void> {
-                // 先删除存储
-                await super.deleteData(key);
-
-                // 清理缓存
-                this.cache.remove(key);
-            }
-
-            // 可选：添加缓存统计方法
-            public getCacheStats() {
-                return {
-                    size: this.cache.getcurrentSizeInBytes(),
-                    keys: this.cache.getKeyCount()
-                };
-            }
-        };
-    };
-}
+//                 // 缓存中没有，调用原始方法检查
+//                 return super.hasData(key);
+//             }
+//         };
+//     };
+// }
 
 export default LRUCache;
-export { WithLRUCache };
+// export { WithLRUCache };

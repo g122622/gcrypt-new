@@ -20,7 +20,7 @@ import lodash from "lodash";
 import IAdapter from "@/api/core/types/IAdapter";
 import IKVPEngine from "@/api/core/types/IKVPEngine";
 import calcBufSize from "@/utils/calcBufSize";
-import { error, success, warn } from "@/utils/gyConsole";
+import { success, warn } from "@/utils/gyConsole";
 import { Buffer } from "buffer";
 import { Disposable } from "@/utils/helpers/Disposable";
 

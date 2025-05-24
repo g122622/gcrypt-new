@@ -78,6 +78,9 @@ class KVPEngineHybrid extends Disposable implements IKVPEngine {
         }
     }
 
+    /**
+     * 保存maps（相当于元数据）到本地磁盘
+     */
     private async saveMaps() {
         await this.baseEngine.setData("@keyReferenceMap", Buffer.from(JSON.stringify(this.keyReferenceMap)));
         await this.baseEngine.setData("@blockUsageMap", Buffer.from(JSON.stringify(this.blockUsageMap)));
@@ -111,8 +114,14 @@ class KVPEngineHybrid extends Disposable implements IKVPEngine {
      */
     private async setDataInBlock(blockKey: string, masterKey: string, value: Buffer): Promise<void> {
         let obj = null;
+        let oldSize = 0;
         if (await this.baseEngine.hasData(blockKey)) {
+            // 如果blockKey存在，那么读取blockKey对应的对象
+            // 这样会导致读放大，但是没办法，这是为了数据完整性考虑
             obj = JSON.parse((await this.baseEngine.getData(blockKey)).toString());
+            if (!!obj && !!obj[masterKey]) {
+                oldSize = calcBufSize(Buffer.from(obj[masterKey], "binary")); // 计算旧值的大小
+            }
         } else {
             obj = {};
         }
@@ -125,9 +134,15 @@ class KVPEngineHybrid extends Disposable implements IKVPEngine {
         if (!this.blockUsageMap[blockKey]) {
             this.blockUsageMap[blockKey] = 0;
         }
-        this.blockUsageMap[blockKey] += calcBufSize(value);
+        // 计算新值的大小
+        // bug fix 2025-05-24
+        // 问题：在 setDataInBlock 方法中，当更新已存在的 Key 时，未扣除旧值大小，导致 blockUsageMap 统计错误。
+        // 修复：在更新 blockUsageMap 前，计算旧值大小并进行差值更新。
+        this.blockUsageMap[blockKey] += calcBufSize(value) - oldSize;
+        ASSERT(this.blockUsageMap[blockKey] >= 0); // 断言：block大小不应该为负数
         // 更新keyReferenceMap
         this.keyReferenceMap[masterKey] = blockKey;
+        // 更新元数据
         await this.saveMaps();
     }
 
@@ -142,8 +157,14 @@ class KVPEngineHybrid extends Disposable implements IKVPEngine {
             // 更新使用量数据
             ASSERT(this.blockUsageMap[blockKey] - size >= 0); // 断言：删除之后，block大小不应该为负数
             this.blockUsageMap[blockKey] -= size;
+            // 如果blockKey对应的对象为空，那么删除blockKey
+            if (Object.keys(obj).length === 0) {
+                await this.baseEngine.deleteData(blockKey);
+                delete this.blockUsageMap[blockKey];
+            }
             // 更新keyReferenceMap
             delete this.keyReferenceMap[masterKey];
+            // 更新元数据
             await this.saveMaps();
         } else {
             throw new Error("KVPEngineHybrid::deleteDataInBlock::noSuchKey: " + masterKey + "in block " + blockKey);
@@ -224,8 +245,8 @@ class KVPEngineHybrid extends Disposable implements IKVPEngine {
                 }
                 await this.setDataInBlock(this.getSuitableBlockKey(), key, buf);
             }
-        } else if (calcBufSize(buf) > config.blockInclusionThreshold && calcBufSize(buf) < config.blockInclusionThreshold) {
-            // 介于大小之间的文件，需要维持原来的状态
+        } else if (calcBufSize(buf) > config.blockInclusionThreshold && calcBufSize(buf) < config.blockExclusionThreshold) {
+            // 介于大小之间的文件，需要维持原来的状态。这么设计是为了避免频繁地移动文件，提高性能
             if (this.keyReferenceMap[key]) {
                 // 检测到在block内
                 await this.setDataInBlock(this.keyReferenceMap[key], key, buf);
