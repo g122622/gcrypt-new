@@ -19,7 +19,7 @@
                     <transition-group>
                         <div class="method-item" v-for="item in matchedItems" :key="item.name"
                             @click="onItemClick(item)" v-ripple>
-                            <v-icon color="white">{{ item.icon }}</v-icon>
+                            <v-icon :color="store.getSetting('is_dark') ? 'white' : 'black'">{{ item.icon }}</v-icon>
                             <div style="max-width: 110px;">
                                 <div class="method-item-header">
                                     {{ item.name }}
@@ -157,6 +157,19 @@ onMounted(() => {
     padding: 15px;
 
     transition: all 0.15s ease-in-out;
+}
+
+.v-theme--LightTheme {
+    .method-item {
+        background-color: rgb(245, 245, 245);
+    }
+
+    // TODO 下面的样式并未生效，请检查原因
+    :deep(.v-toolbar) {
+        // 清除shadow
+        box-shadow: none !important;
+        border-radius: 10px;
+    }
 }
 
 .method-item:hover {
