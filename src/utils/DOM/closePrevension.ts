@@ -5,10 +5,18 @@ const handler = event => {
     event.returnValue = "";
 };
 
+let isPrevented = false;
+
 export function preventPageClose() {
-    window.addEventListener("beforeunload", handler);
+    if (!isPrevented) {
+        window.addEventListener("beforeunload", handler);
+        isPrevented = true;
+    }
 }
 
 export function allowPageClose() {
-    window.removeEventListener("beforeunload", handler);
+    if (isPrevented) {
+        window.removeEventListener("beforeunload", handler);
+        isPrevented = false;
+    }
 }
