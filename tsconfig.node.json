@@ -5,12 +5,7 @@
         "module": "ESNext",
         "moduleResolution": "bundler",
         "allowSyntheticDefaultImports": true,
-        "strict": true,
-        /* path */
-        "baseUrl": ".",
-        "paths": {
-            "@/*": ["src/*"]
-        }
+        "strict": true
     },
-    "include": ["farm.config.ts"]
+    "include": ["vite.config.ts"]
 }
