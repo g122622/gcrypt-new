@@ -4,8 +4,8 @@ import path from "path";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 import { VitePWA } from "vite-plugin-pwa";
 
-const process = require("process");
-const os = require("os");
+import process from "process";
+import os from "os";
 
 // 生成从minNum到maxNum的随机数
 const randomRange = function (minNum: number, maxNum: number): number {

@@ -1,9 +1,11 @@
 {
   "name": "vue-test-1",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview",
     "test": "vitest"
   },
   "dependencies": {
@@ -36,6 +38,8 @@
   },
   "devDependencies": {
     "@types/electron": "^1.4.38",
+    "typescript": "~5.6.2",
+    "vue-tsc": "^2.1.8",
     "@vitejs/plugin-vue": "^5.2.4",
     "@vitest/browser": "^3.1.1",
     "core-js": "^3.30.1",
