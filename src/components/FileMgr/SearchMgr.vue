@@ -15,7 +15,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineEmits } from "vue"
+import { computed } from "vue"
 import AdvancedTextField from "@/components/shared/AdvancedTextField.vue"
 import ResponsiveMenu from "@/components/ResponsiveLayout/ResponsiveMenu.vue"
 
