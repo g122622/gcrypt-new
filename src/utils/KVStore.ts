@@ -84,6 +84,7 @@ class KVStoreWeb implements IKVStore {
             localStorage.setItem(this.name, JSON.stringify(store));
         } catch (error) {
             console.error("Error writing to localStorage:", error);
+            throw error;
         }
     }
 
@@ -96,6 +97,7 @@ class KVStoreWeb implements IKVStore {
             }
         } catch (error) {
             console.error("Error deleting from localStorage:", error);
+            throw error;
         }
     }
 
