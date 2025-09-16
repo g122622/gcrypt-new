@@ -1,5 +1,5 @@
 /**
- * File: \src\api\core\types\IAdapter.ts
+ * File: \src\backend\core\types\IAdapter.ts
  * Project: Gcrypt
  * Created Date: 2023-11-26 17:14:30
  * Author: Guoyi

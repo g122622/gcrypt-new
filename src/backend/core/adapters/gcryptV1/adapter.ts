@@ -1,5 +1,5 @@
 /**
- * File: \src\api\core\adapters\gcryptV1\adapter.ts
+ * File: \src\backend\core\adapters\gcryptV1\adapter.ts
  * Project: Gcrypt
  * Created Date: 2023-11-26 17:14:30
  * Author: Guoyi

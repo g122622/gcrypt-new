@@ -1,5 +1,5 @@
 /**
- * File: \src\api\core\types\DirSingleItem.ts
+ * File: \src\backend\core\types\DirSingleItem.ts
  * Project: Gcrypt
  * Created Date: 2023-11-26 17:14:30
  * Author: Guoyi
@@ -15,12 +15,12 @@
 import singleFileMetaData from "./singleFileMetaData";
 
 interface DirSingleItem {
-    name: string,
-    type: 'file' | 'folder',
-    isSymlink: boolean,
-    meta: singleFileMetaData,
-    key: string | null,
-    extraMetaKeysList: string[]
+    name: string;
+    type: "file" | "folder";
+    isSymlink: boolean;
+    meta: singleFileMetaData;
+    key: string | null;
+    extraMetaKeysList: string[];
 }
 
 // // 单独的 interface，其中 a、b 和 c 是必须的
@@ -57,4 +57,4 @@ interface DirSingleItem {
 
 // }
 
-export default DirSingleItem
+export default DirSingleItem;

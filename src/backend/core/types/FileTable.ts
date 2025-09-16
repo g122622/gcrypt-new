@@ -1,5 +1,5 @@
 /**
- * File: \src\api\core\types\FileTable.ts
+ * File: \src\backend\core\types\FileTable.ts
  * Project: Gcrypt
  * Created Date: 2023-11-26 17:14:30
  * Author: Guoyi
@@ -15,8 +15,8 @@
 import DirSingleItem from "./DirSingleItem";
 
 interface FileTable {
-    items: Array<DirSingleItem>,
-    selfKey: string
+    items: Array<DirSingleItem>;
+    selfKey: string;
 }
 
-export default FileTable
+export default FileTable;
