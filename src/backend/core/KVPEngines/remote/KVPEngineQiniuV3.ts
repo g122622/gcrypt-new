@@ -52,12 +52,16 @@ export default class KVPEngineQiniuV3 extends KVPEngineQiniuV3Readonly implement
             key = getDigest(Buffer.from(key), "md5");
         }
 
+        // TODO delete/xxx这个路径是我自己猜的，需要确认一下
+
         // 1. 构造 EncodedEntryURI: <bucket>:<key> → URL安全Base64编码
         const entry = `${this.config.bucketName}:${key}`;
         const encodedEntry = qiniu.urlSafeBase64Encode(entry);
 
         // 2. 构造请求URL
-        const url = `http://rs.qiniu.com/delete/${encodedEntry}`;
+        // const url = `http://rs.qiniu.com/delete/${encodedEntry}`;
+        // 为了避免CORS问题，使用cors-anywhere.herokuapp.com代理
+        const url = `https://cors-anywhere.herokuapp.com/http://rs.qiniu.com/delete/${encodedEntry}`;
 
         // 3. 构造待签名字符串 signingStr
         // 格式: "POST /delete/xxx\nHost: rs.qiniu.com\n\n"
@@ -76,8 +80,7 @@ export default class KVPEngineQiniuV3 extends KVPEngineQiniuV3Readonly implement
         try {
             await axios.post(url, null, {
                 headers: {
-                    Authorization: `Qiniu ${accessToken}`,
-                    "Content-Type": "application/x-www-form-urlencoded" // 七牛要求
+                    Authorization: `Qiniu ${accessToken}`
                 }
             });
         } catch (error) {
