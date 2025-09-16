@@ -1,6 +1,6 @@
 import nodeFS from "@/platform/nodejs/fs";
 import { configure, InMemory, promises as zenFS_promises } from "@zenfs/core";
-// import notification from "@/api/notification";
+// import notification from "@/backend/notification";
 import { isNodeJS } from "@/platform/platform";
 import { IndexedDB, WebStorage } from "@zenfs/dom";
 import { success } from "../gyConsole";

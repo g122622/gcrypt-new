@@ -1,6 +1,6 @@
 import { Disposable } from "@/utils/helpers/Disposable";
 import prettyBytes from "../prettyBytes";
-import IKVPEngine from "@/api/core/types/IKVPEngine";
+import IKVPEngine from "@/backend/core/types/IKVPEngine";
 
 /**
  * LRUNode 是 LRUCache 中的节点。

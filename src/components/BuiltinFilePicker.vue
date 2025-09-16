@@ -25,13 +25,13 @@
 import { ref, onUnmounted } from 'vue';
 import FileMgr from '@/components/FileMgr/FileMgr.vue'
 import emitter from "@/eventBus"
-import Adapter from "@/api/core/adapters/localFiles/adapter"
+import Adapter from "@/backend/core/adapters/localFiles/adapter"
 import { FileMgrOptions } from '@/components/FileMgr/types/FileMgrOptions';
-import DirSingleItem from '@/api/core/types/DirSingleItem';
+import DirSingleItem from '@/backend/core/types/DirSingleItem';
 import path from 'path'
-import notification from '@/api/notification';
+import notification from '@/backend/notification';
 import getAllDrive from '@/utils/file/getAllDrive'
-import Addr from '@/api/core/common/Addr';
+import Addr from '@/backend/core/common/Addr';
 
 const filePickers = ref<{
     isDialogOpen: boolean,

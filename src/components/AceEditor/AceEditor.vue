@@ -9,7 +9,7 @@
 import { ref, onMounted, watch } from "vue"
 import sharedUtils from "@/utils/sharedUtils"
 import { VAceEditor } from 'vue3-ace-editor';
-import File from "@/api/File";
+import File from "@/backend/File";
 import getExtName from "@/utils/file/getExtName";
 import { useSettingsStore } from "@/store/settings"
 

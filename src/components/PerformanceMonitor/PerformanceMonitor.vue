@@ -52,7 +52,7 @@ import { memoryUsage } from "memoryUsage";
 import { ref, onMounted, nextTick } from "vue";
 import CanvasChart from "./CanvasChart.vue"
 import electron from "@/platform/electron/electronAPI";
-import notification from "@/api/notification";
+import notification from "@/backend/notification";
 
 const isMenuOpen = ref(false)
 let memDatas: Array<memoryUsage> = []

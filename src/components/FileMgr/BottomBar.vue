@@ -11,13 +11,14 @@
         <IconBtn variant="plain" size="x-small" icon="mdi-selection-off" tooltip="全不选" @click="emit('unSelectAll')"
             v-if="props.selectedItems.size > 0">
         </IconBtn>
-        <IconBtn variant="plain" size="x-small" icon="mdi-select-compare" tooltip="反选" @click="emit('reverseSelection')">
+        <IconBtn variant="plain" size="x-small" icon="mdi-select-compare" tooltip="反选"
+            @click="emit('reverseSelection')">
         </IconBtn>
     </div>
 </template>
 
 <script setup lang="ts">
-import DirSingleItem from '@/api/core/types/DirSingleItem';
+import DirSingleItem from '@/backend/core/types/DirSingleItem';
 
 interface Props {
     currentFileTableForRender: DirSingleItem[],

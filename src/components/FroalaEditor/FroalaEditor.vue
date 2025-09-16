@@ -7,7 +7,7 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount } from "vue"
 import sharedUtils from "@/utils/sharedUtils"
-import File from "@/api/File";
+import File from "@/backend/File";
 import { useSettingsStore } from "@/store/settings";
 import sleep from "@/utils/sleep";
 

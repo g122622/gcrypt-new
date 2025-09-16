@@ -58,12 +58,12 @@
 </template>
 
 <script setup lang="ts">
-import DirSingleItem from "@/api/core/types/DirSingleItem";
+import DirSingleItem from "@/backend/core/types/DirSingleItem";
 import getFileType from "@/utils/file/getFileType";
 import { computed, ref, onMounted, onUnmounted } from "vue";
 import { useMainStore } from "@/store/main"
 import prettyBytes from "@/utils/prettyBytes";
-import IAdapter from "@/api/core/types/IAdapter";
+import IAdapter from "@/backend/core/types/IAdapter";
 import { ViewOptions } from "./types/ViewOptions";
 import getThumbnailFromSystem from '@/utils/image/getThumbnailFromSystem'
 import { warn } from "@/utils/gyConsole";

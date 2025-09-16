@@ -7,7 +7,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from "vue"
 import sharedUtils from "@/utils/sharedUtils"
-import File from "@/api/File";
+import File from "@/backend/File";
 import { useSettingsStore } from "@/store/settings"
 
 const settingsStore = useSettingsStore()

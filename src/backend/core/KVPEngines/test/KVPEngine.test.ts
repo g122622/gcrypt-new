@@ -1,13 +1,13 @@
 // // This file is used to test the KVPEngineFolder class.
 // import { describe, expect, test, vi } from "vitest";
-// import KVPEngineFolder from "@/api/core/KVPEngines/KVPEngineFolder";
+// import KVPEngineFolder from "@/backend/core/KVPEngines/KVPEngineFolder";
 // import VFS from "@/utils/file/virtualFS";
 // import EncryptionEngineNoop from "../../encryptionEngines/EncryptionEngineNoop";
-// import getDigest from "@/api/hash/getDigest";
+// import getDigest from "@/backend/hash/getDigest";
 
 // // Mock the external dependencies
 // vi.mock("@/utils/file/virtualFS");
-// vi.mock("@/api/hash/getDigest");
+// vi.mock("@/backend/hash/getDigest");
 
 // describe("KVPEngineFolder", (beforeEach) => {
 //     let kvpe: KVPEngineFolder;

@@ -92,7 +92,7 @@ import { computed, toRefs, ref, watch } from "vue";
 import SettingTypes from "@/types/settingTypes"
 import { useSettingsStore } from "@/store/settings"
 import settingItem from "@/types/settingItem";
-import File from "@/api/File";
+import File from "@/backend/File";
 import AdvancedTextField from "@/components/shared/AdvancedTextField.vue";
 import { error, success } from "@/utils/gyConsole";
 const settingsStore = useSettingsStore()

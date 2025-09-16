@@ -52,11 +52,11 @@
 <script setup lang="ts">
 // 这个组件只负责UI，逻辑交给OpenMethodMgr去处理
 import { ref, computed, onMounted, watch } from "vue"
-import { OpenMethodMgr, IOpenMethod } from "@/api/OpenMethodMgr"
+import { OpenMethodMgr, IOpenMethod } from "@/backend/OpenMethodMgr"
 import emitter from "@/eventBus"
-import File from "@/api/File"
+import File from "@/backend/File"
 import { useSettingsStore } from "@/store/settings"
-import registerBulitinOpenMethods from "@/api/registerBuiltinOpenMethods"
+import registerBulitinOpenMethods from "@/backend/registerBuiltinOpenMethods"
 import AdvancedList from "../shared/AdvancedList.vue"
 import AdvancedGrid from "../ResponsiveLayout/AdvancedGrid.vue"
 

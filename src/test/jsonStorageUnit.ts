@@ -1,4 +1,4 @@
-// import { createNewData, getData, init, setData } from '../api/core/adapters/gcryptV1/jsonStorage'
+// import { createNewData, getData, init, setData } from '../backend/core/adapters/gcryptV1/jsonStorage'
 // import { log } from '../utils/gyConsole'
 
 // export default function test() {

@@ -21,7 +21,7 @@
 <script setup lang="ts">
 import { ref, watchEffect, onMounted } from "vue"
 import emitter from "@/eventBus"
-import notification from "@/api/notification";
+import notification from "@/backend/notification";
 
 interface Props {
     src?: string,

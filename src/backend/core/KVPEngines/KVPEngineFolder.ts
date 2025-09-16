@@ -15,7 +15,7 @@
 import VFS from "@/utils/file/virtualFS";
 import IKVPEngine from "../types/IKVPEngine";
 import IEncryptionEngine from "../types/IEncryptionEngine";
-import getDigest from "@/api/hash/getDigest";
+import getDigest from "@/backend/hash/getDigest";
 import { Buffer } from "buffer";
 import { Disposable } from "@/utils/helpers/Disposable";
 

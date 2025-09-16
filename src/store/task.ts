@@ -12,14 +12,14 @@
  * ------------------------------------
  */
 
-import Task from '@/api/Task'
-import { defineStore } from 'pinia'
+import Task from "@/backend/Task";
+import { defineStore } from "pinia";
 
 export const useTaskStore = defineStore("task", {
     state() {
         return {
             taskPool: [] as Array<Task>
-        }
+        };
     },
     actions: {
         /**
@@ -27,14 +27,17 @@ export const useTaskStore = defineStore("task", {
          * @param task
          * @param options
          */
-        addTask(task: Task, options: {
-            runImmediately?: boolean,
-        }) {
-            if (task.state === 'pending') {
-                this.taskPool.push(task)
+        addTask(
+            task: Task,
+            options: {
+                runImmediately?: boolean;
+            }
+        ) {
+            if (task.state === "pending") {
+                this.taskPool.push(task);
             }
             if (options?.runImmediately) {
-                task.run()
+                task.run();
             }
         },
 
@@ -43,8 +46,8 @@ export const useTaskStore = defineStore("task", {
          * @param count 运行的任务数
          */
         async runTasks(count?: number) {
-            for (let i = 0; (i < count) && (i < this.taskPool.length); i++) {
-                await this.taskPool[i].run()
+            for (let i = 0; i < count && i < this.taskPool.length; i++) {
+                await this.taskPool[i].run();
             }
         },
 
@@ -55,24 +58,24 @@ export const useTaskStore = defineStore("task", {
          * @returns 是否全部任务均成功
          */
         async runTaskGroup(groupId: string, options?: { parallel?: boolean }) {
-            const matchedTasks: Task[] = this.taskPool.filter((item) => item.groupId === groupId)
-            let isAnyTaskFailed = false
+            const matchedTasks: Task[] = this.taskPool.filter(item => item.groupId === groupId);
+            let isAnyTaskFailed = false;
 
             if (options?.parallel) {
                 Promise.all(matchedTasks.map(item => item.run())).catch(() => {
-                    isAnyTaskFailed = true
-                })
+                    isAnyTaskFailed = true;
+                });
             } else {
                 for (let i = 0; i < matchedTasks.length; i++) {
-                    await matchedTasks[i].run()
-                    if (matchedTasks[i].state === 'failed') {
+                    await matchedTasks[i].run();
+                    if (matchedTasks[i].state === "failed") {
                         // 有任一任务出错
-                        isAnyTaskFailed = true
+                        isAnyTaskFailed = true;
                     }
                 }
             }
 
-            return !isAnyTaskFailed
+            return !isAnyTaskFailed;
         },
 
         /**
@@ -80,8 +83,8 @@ export const useTaskStore = defineStore("task", {
          */
         clean() {
             this.taskPool = this.taskPool.filter(item => {
-                return (item.state !== 'cancelled') && (item.state !== 'succeed')
-            })
+                return item.state !== "cancelled" && item.state !== "succeed";
+            });
         },
 
         /**
@@ -90,13 +93,12 @@ export const useTaskStore = defineStore("task", {
          */
         getPendingOrRunningTaskAmount(): number {
             return this.taskPool.reduce((ans, val) => {
-                if (val.state === 'pending' || val.state === 'running') {
-                    return ans + 1
+                if (val.state === "pending" || val.state === "running") {
+                    return ans + 1;
                 } else {
-                    return ans
+                    return ans;
                 }
-            }, 0)
+            }, 0);
         }
     }
-}
-)
+});

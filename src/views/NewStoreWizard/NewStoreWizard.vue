@@ -89,7 +89,7 @@
         <v-footer>
             <!-- 进度指示器 -->
             <v-timeline side="end" direction="horizontal">
-                <v-timeline-item v-for="(item, index) in progressLineItems " :key="item.stage"
+                <v-timeline-item v-for="(item, index) in progressLineItems" :key="item.stage"
                     :dot-color="index + 1 === currentStage ? 'error' : 'info'" size="small">
                     <v-alert :value="true" color="info">
                         {{ item.title }}
@@ -104,7 +104,7 @@
 import { reactive, ref, watchEffect } from "vue"
 import { useEncryptionStore } from "@/store/encryption";
 import VFS from "@/utils/file/virtualFS";
-import EntryJson from "@/api/core/types/EntryJson";
+import EntryJson from "@/backend/core/types/EntryJson";
 import IconBtn from "@/components/shared/IconBtn.vue";
 import pickFile from "@/utils/shell/pickFile";
 const encryptionStore = useEncryptionStore()

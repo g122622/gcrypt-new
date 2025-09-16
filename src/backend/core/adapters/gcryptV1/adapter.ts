@@ -13,12 +13,12 @@
  */
 
 import sharedUtils from "@/utils/sharedUtils";
-import Addr from "@/api/core/common/Addr";
-import DirSingleItem from "@/api/core/types/DirSingleItem";
-import FileTable from "@/api/core/types/FileTable";
+import Addr from "@/backend/core/common/Addr";
+import DirSingleItem from "@/backend/core/types/DirSingleItem";
+import FileTable from "@/backend/core/types/FileTable";
 import lodash from "lodash";
-import IAdapter from "@/api/core/types/IAdapter";
-import IKVPEngine from "@/api/core/types/IKVPEngine";
+import IAdapter from "@/backend/core/types/IAdapter";
+import IKVPEngine from "@/backend/core/types/IKVPEngine";
 import calcBufSize from "@/utils/calcBufSize";
 import { success, warn } from "@/utils/gyConsole";
 import { Buffer } from "buffer";

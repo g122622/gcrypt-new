@@ -1,5 +1,5 @@
-// import Addr from '../api/core/common/Addr'
-// import adapter from '../api/core/adapters/gcryptV1/adapter'
+// import Addr from '../backend/core/common/Addr'
+// import adapter from '../backend/core/adapters/gcryptV1/adapter'
 // import { log, warn } from '../utils/gyConsole'
 
 // export default async function test() {

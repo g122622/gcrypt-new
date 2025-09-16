@@ -2,7 +2,7 @@ import * as qiniu from "qiniu-js";
 import IKVPEngine from "../../types/IKVPEngine";
 import RequestURLBuilder from "@/utils/http/RequestURLBuilder";
 import axios from "axios";
-import getDigest from "@/api/hash/getDigest";
+import getDigest from "@/backend/hash/getDigest";
 import KVPEngineQiniuV3Readonly from "./KVPEngineQiniuV3Readonly";
 import { Buffer } from "buffer";
 
@@ -20,8 +20,7 @@ export default class KVPEngineQiniuV3 extends KVPEngineQiniuV3Readonly implement
             JSON.stringify({
                 scope: `${this.config.bucketName}:${key}`,
                 deadline: Math.floor(Date.now() / 1000) + 3600,
-                returnBody: JSON.stringify({
-                })
+                returnBody: JSON.stringify({})
             })
         );
         const sign = this.hmacSha1(encodedPutPolicy, this.config.SECRET_KEY);

@@ -4,7 +4,8 @@
         <template #mainContent>
             <!-- 时间选择器 -->
             <v-date-picker color="primary" show-adjacent-months show-week v-model="item.selectedDate"
-                @click:save="item.confirmHandler(item.selectedDate)" @click:cancel="item.cancellHandler()"></v-date-picker>
+                @click:save="item.confirmHandler(item.selectedDate)"
+                @click:cancel="item.cancellHandler()"></v-date-picker>
         </template>
     </DialogGenerator>
 </template>
@@ -12,7 +13,7 @@
 <script setup lang="ts">
 import { ref, onUnmounted } from 'vue';
 import emitter from "@/eventBus"
-import notification from '@/api/notification';
+import notification from '@/backend/notification';
 
 const datePickers = ref<{
     isDialogOpen: boolean,

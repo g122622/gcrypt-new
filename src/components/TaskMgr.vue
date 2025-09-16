@@ -42,7 +42,7 @@
 <script setup lang="ts">
 import ResponsiveMenu from "./ResponsiveLayout/ResponsiveMenu.vue";
 import { useTaskStore } from "@/store/task"
-import Task from "@/api/Task";
+import Task from "@/backend/Task";
 
 const taskStore = useTaskStore()
 const getTooltip = (item: Task) => {

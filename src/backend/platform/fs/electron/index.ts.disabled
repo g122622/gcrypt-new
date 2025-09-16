@@ -1,5 +1,5 @@
 import fs from "fs-extra";
-import notification from "@/api/notification";
+import notification from "@/backend/notification";
 
 const handleException = (e: any, shouldThrow = true) => {
     if (e.code === "ENOENT") {

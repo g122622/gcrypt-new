@@ -29,14 +29,14 @@
 <script setup lang="ts">
 import { ref } from "vue"
 import AdvancedList from "@/components/shared/AdvancedList.vue"
-import IAdapter from "@/api/core/types/IAdapter";
+import IAdapter from "@/backend/core/types/IAdapter";
 import { ClipBoardItem } from "./types/ClipBoardItem";
-import Addr from "@/api/core/common/Addr";
+import Addr from "@/backend/core/common/Addr";
 import { useTaskStore } from "@/store/task";
-import Task from "@/api/Task";
-import DirSingleItem from "@/api/core/types/DirSingleItem";
+import Task from "@/backend/Task";
+import DirSingleItem from "@/backend/core/types/DirSingleItem";
 import lodash from "lodash";
-import notification from "@/api/notification";
+import notification from "@/backend/notification";
 import ResponsiveMenu from "@/components/ResponsiveLayout/ResponsiveMenu.vue";
 
 interface Props {

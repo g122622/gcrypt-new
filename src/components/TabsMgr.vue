@@ -14,7 +14,8 @@
                     </v-icon>
                 </template>
                 <template #append>
-                    <IconBtn size="x-small" icon="mdi-close" tooltip="关闭标签页" @click="item.handleClose()" variant="plain" />
+                    <IconBtn size="x-small" icon="mdi-close" tooltip="关闭标签页" @click="item.handleClose()"
+                        variant="plain" />
                 </template>
                 <v-tooltip activator="parent" location="right">
                     {{ item.name }}
@@ -26,7 +27,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue"
-import TabsMgr from "@/api/TabsMgr";
+import TabsMgr from "@/backend/TabsMgr";
 import emitter from "@/eventBus";
 import { useRoute } from 'vue-router'
 

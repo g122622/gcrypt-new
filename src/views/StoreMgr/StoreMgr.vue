@@ -66,7 +66,7 @@
 <script setup lang="ts">
 import { ref, reactive } from "vue"
 import { useEncryptionStore } from "@/store/encryption";
-import EntryJson from "@/api/core/types/EntryJson";
+import EntryJson from "@/backend/core/types/EntryJson";
 import NewStoreWizard from "@/views/NewStoreWizard/NewStoreWizard.vue";
 import emitter from "@/eventBus";
 import path from 'path'

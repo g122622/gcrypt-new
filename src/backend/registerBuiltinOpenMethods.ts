@@ -1,9 +1,9 @@
 import emitter from "@/eventBus";
 import WebBrowser from "@/components/WebBrowser/WebBrowser.vue";
 // import ImageViewer from "@/components/ImageViewer/ImageViewer.vue"
-import File from "@/api/File";
+import File from "@/backend/File";
 import FroalaEditor from "@/components/FroalaEditor/FroalaEditor.vue";
-import getDigest from "@/api/hash/getDigest";
+import getDigest from "@/backend/hash/getDigest";
 import pickFile from "@/utils/shell/pickFile";
 import AceEditor from "@/components/AceEditor/AceEditor.vue";
 import JsonEditor from "@/components/JsonEditor.vue";

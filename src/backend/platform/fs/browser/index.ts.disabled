@@ -1,6 +1,6 @@
 /* eslint-disable dot-notation */
 
-import notification from "@/api/notification";
+import notification from "@/backend/notification";
 
 interface GcryptFS {
     readFileSync(path: string, options?: { encoding?: BufferEncoding | null; flag?: string }): Buffer | string;

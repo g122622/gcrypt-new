@@ -46,7 +46,7 @@
                                         <v-btn v-for="listItem in item.list" :key="listItem.title">
                                             <v-icon>{{ listItem.icon }}</v-icon>
                                             <v-tooltip activator="parent" location="bottom">{{ listItem.title
-                                            }}</v-tooltip>
+                                                }}</v-tooltip>
                                         </v-btn>
 
                                     </v-btn-toggle>
@@ -96,7 +96,7 @@
                     <v-icon @click="gotoDir(currentDir.goToRoot(), true)"
                         style="cursor: pointer;">mdi-map-marker</v-icon>
                     <v-tooltip activator="parent" location="bottom">{{ `当前目录: ` + currentDir.toPathStr()
-                    }}</v-tooltip>
+                        }}</v-tooltip>
                     <v-breadcrumbs density="compact" style="display: inline;">
                         <template v-for="(item, i) in currentDir.tokens" :key="item">
                             <v-breadcrumbs-item :title="item"
@@ -200,21 +200,21 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, reactive, onMounted, onUnmounted } from "vue";
-import Addr from "@/api/core/common/Addr";
+import Addr from "@/backend/core/common/Addr";
 import getFileName from "@/utils/file/getFileName";
 import lodash from "lodash";
-import DirSingleItem from "@/api/core/types/DirSingleItem";
-import FileTable from "@/api/core/types/FileTable";
+import DirSingleItem from "@/backend/core/types/DirSingleItem";
+import FileTable from "@/backend/core/types/FileTable";
 import emitter from "@/eventBus";
-import IAdapter from "@/api/core/types/IAdapter";
-import File from "@/api/File";
+import IAdapter from "@/backend/core/types/IAdapter";
+import File from "@/backend/File";
 import getExtName from "@/utils/file/getExtName";
 import { useTaskStore } from '@/store/task'
 import { useSettingsStore } from "@/store/settings"
-import Task from "@/api/Task";
+import Task from "@/backend/Task";
 import sharedUtils from "@/utils/sharedUtils";
 import prettyBytes from "@/utils/prettyBytes";
-import notification from "@/api/notification";
+import notification from "@/backend/notification";
 import pickFile from "@/utils/shell/pickFile";
 import { FileMgrOptions } from "./types/FileMgrOptions"
 // import getWindowsShortcutProperties from 'get-windows-shortcut-properties'

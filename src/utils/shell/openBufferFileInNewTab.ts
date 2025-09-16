@@ -1,4 +1,4 @@
-import notification from "@/api/notification";
+import notification from "@/backend/notification";
 import getMimeType from "../file/getMimeType";
 import { IDisposable } from "../helpers/Disposable";
 import getFileType from "../file/getFileType";

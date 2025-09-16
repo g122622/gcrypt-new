@@ -2,7 +2,7 @@ import IKVPEngine from "../../types/IKVPEngine";
 import IEncryptionEngine from "../../types/IEncryptionEngine";
 import RequestURLBuilder from "@/utils/http/RequestURLBuilder";
 import axios from "axios";
-import getDigest from "@/api/hash/getDigest";
+import getDigest from "@/backend/hash/getDigest";
 import VFS from "@/utils/file/virtualFS";
 import crypto from "crypto";
 import EntryJson from "../../types/EntryJson";

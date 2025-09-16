@@ -70,9 +70,9 @@ import { useEventListener } from "@vueuse/core";
 import { useSettingsStore } from "@/store/settings"
 import { useEncryptionStore } from "@/store/encryption";
 // import { safeStorage } from "electron";
-import getDigest from "@/api/hash/getDigest";
+import getDigest from "@/backend/hash/getDigest";
 import ASSERT from "@/utils/ASSERT";
-import notification from "@/api/notification";
+import notification from "@/backend/notification";
 import emitter from "@/eventBus";
 import electron from "@/platform/electron/electronAPI";
 import { log } from "@/utils/gyConsole";

@@ -1,22 +1,22 @@
 import { defineStore } from "pinia";
-import EntryJson from "@/api/core/types/EntryJson";
+import EntryJson from "@/backend/core/types/EntryJson";
 import FileMgr from "@/components/FileMgr/FileMgr.vue";
 import emitter from "@/eventBus";
 import sharedUtils from "@/utils/sharedUtils";
 import VFS from "@/utils/file/virtualFS";
 import { error, success } from "@/utils/gyConsole";
-import notification from "@/api/notification";
+import notification from "@/backend/notification";
 
-import IEncryptionEngine from "@/api/core/types/IEncryptionEngine";
-import IAdapter from "@/api/core/types/IAdapter";
-import IKVPEngine from "@/api/core/types/IKVPEngine";
+import IEncryptionEngine from "@/backend/core/types/IEncryptionEngine";
+import IAdapter from "@/backend/core/types/IAdapter";
+import IKVPEngine from "@/backend/core/types/IKVPEngine";
 
-import KVPEngineJson from "@/api/core/KVPEngines/KVPEngineJson";
-import GcryptV1Adapter from "@/api/core/adapters/gcryptV1/adapter";
-import EncryptionEngineAES192 from "@/api/core/encryptionEngines/EncryptionEngineAES192";
-import KVPEngineFolder from "@/api/core/KVPEngines/KVPEngineFolder";
-import KVPEngineHybrid from "@/api/core/KVPEngines/KVPEngineHybrid";
-import EncryptionEngineNoop from "@/api/core/encryptionEngines/EncryptionEngineNoop";
+import KVPEngineJson from "@/backend/core/KVPEngines/KVPEngineJson";
+import GcryptV1Adapter from "@/backend/core/adapters/gcryptV1/adapter";
+import EncryptionEngineAES192 from "@/backend/core/encryptionEngines/EncryptionEngineAES192";
+import KVPEngineFolder from "@/backend/core/KVPEngines/KVPEngineFolder";
+import KVPEngineHybrid from "@/backend/core/KVPEngines/KVPEngineHybrid";
+import EncryptionEngineNoop from "@/backend/core/encryptionEngines/EncryptionEngineNoop";
 import KVStore from "@/utils/KVStore";
 import GcryptApp from "@/main";
 
