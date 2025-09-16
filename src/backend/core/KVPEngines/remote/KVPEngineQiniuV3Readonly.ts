@@ -64,10 +64,13 @@ export default class KVPEngineQiniuV3Readonly extends Disposable implements IKVP
         this.encryptionEngine = encryptionEngine;
     }
 
-    protected hmacSha1(encodedFlags: string, secretKey: string): string {
+    protected hmacSha1(encodedFlags: string, secretKey: string, shouldToBase64: boolean = true): string {
         const hmac = crypto.createHmac("sha1", secretKey);
         hmac.update(encodedFlags);
-        return hmac.digest("base64");
+        if (shouldToBase64) {
+            return hmac.digest("base64");
+        }
+        return hmac.digest("hex");
     }
 
     /**

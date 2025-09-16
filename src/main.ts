@@ -35,7 +35,7 @@ import utils from "./utils/utils";
 import lodash, { debounce } from "lodash";
 import nextTick from "@/utils/nextTick";
 import notification from "./backend/notification";
-// import test from "./test/KVPEngineHybridUnit";
+import test from "./test/KVPEQiniuUnit";
 import JsonViewer from "vue-json-viewer";
 import JsonEditorVue from "json-editor-vue";
 import touch from "vue3-hand-mobile";
@@ -345,5 +345,5 @@ class ApplicationRenderer extends Disposable {
 // })();
 
 const GcryptApp = new ApplicationRenderer();
-
+window["runTest"] = test;
 export default GcryptApp;
