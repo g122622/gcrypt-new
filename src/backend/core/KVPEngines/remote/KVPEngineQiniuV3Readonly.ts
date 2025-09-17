@@ -85,7 +85,7 @@ export default class KVPEngineQiniuV3Readonly extends Disposable implements IKVP
         };
 
         const builder = new RequestURLBuilder(this.config.domain, this.config.isHttps);
-        const expireStamp = Math.floor(Date.now() / 1000) + 60; // 1 minute later
+        const expireStamp = Math.floor(Date.now() / 1000) + 3600; // 1 hour later
         const baseUrl = builder.buildUrl(key, { e: expireStamp });
         const signature = this.hmacSha1(baseUrl, this.config.SECRET_KEY);
         const encodedSign = base64ToUrlSafe(signature);
