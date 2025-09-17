@@ -1,6 +1,4 @@
 import { Disposable } from "@/utils/helpers/Disposable";
-import prettyBytes from "../prettyBytes";
-import IKVPEngine from "@/backend/core/types/IKVPEngine";
 
 /**
  * LRUNode 是 LRUCache 中的节点。
@@ -43,8 +41,8 @@ class LRUCache extends Disposable {
      */
     constructor(maxSizeInBytes: number, maxPerKeySizeInBytes?: number) {
         super();
-        if (maxSizeInBytes <= 0) {
-            throw new Error("maxSizeInBytes must be a positive number");
+        if (maxSizeInBytes < 0) {
+            throw new Error("maxSizeInBytes must be a positive number or 0");
         }
         this.maxSizeInBytes = maxSizeInBytes;
         if (maxPerKeySizeInBytes < 0 || !maxPerKeySizeInBytes) {
@@ -93,7 +91,10 @@ class LRUCache extends Disposable {
 
     public put(key: string, value: Buffer): void {
         if (value.byteLength > this.maxPerKeySizeInBytes) {
-            return; // 超过最大容量则不缓存
+            // 超过最大容量则不缓存
+            // 坑：为了确保使用者对于数据一致性的要求，key超过maxPerKeySizeInBytes的情况下需要删除key对应的数据（如果存在）
+            this.remove(key);
+            return;
         }
         if (this.hashMap.has(key)) {
             // 更新现有节点
@@ -134,7 +135,8 @@ class LRUCache extends Disposable {
     /**
      * 对上层应用暴露，用于移除指定 key 的缓存
      * @param key 键
-     * @note 由于LRUCache会自动管理缓存的淘汰，因此上层应用调用这个方法的目的不应该是为了释放内存。
+     * @note 由于LRUCache会自动管理缓存的淘汰，因此上层应用调用这个方法的目的不应该是为了释放内存，
+     * 而是为了显式地移除数据（比如文件被删除时）
      */
     public remove(key: string): void {
         if (this.hashMap.has(key)) {

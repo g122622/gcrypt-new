@@ -1,15 +1,22 @@
 import * as qiniu from "qiniu-js";
 import IKVPEngine from "../../types/IKVPEngine";
-import RequestURLBuilder from "@/utils/http/RequestURLBuilder";
 import axios from "axios";
 import getDigest from "@/backend/hash/getDigest";
 import KVPEngineQiniuV3Readonly from "./KVPEngineQiniuV3Readonly";
 import { Buffer } from "buffer";
+import { error } from "@/utils/gyConsole";
+import { UploadProgress } from "qiniu-js/esm/upload";
+import { DELETED_FILE_MARKER } from "../common/constants";
+import sleep from "@/utils/sleep";
 
 /**
  * 七牛云存储实现的键值对引擎
  */
 export default class KVPEngineQiniuV3 extends KVPEngineQiniuV3Readonly implements IKVPEngine {
+    constructor() {
+        super();
+    }
+
     /**
      * https://developer.qiniu.com/kodo/1208/upload-token
      * @param key
@@ -19,16 +26,23 @@ export default class KVPEngineQiniuV3 extends KVPEngineQiniuV3Readonly implement
         const encodedPutPolicy: string = qiniu.urlSafeBase64Encode(
             JSON.stringify({
                 scope: `${this.config.bucketName}:${key}`,
-                deadline: Math.floor(Date.now() / 1000) + 3600,
+                deadline: Math.floor(Date.now() / 1000) + 3600, // 1h有效期
                 returnBody: JSON.stringify({})
             })
         );
-        // hmacSha1签名之后会自动算出base64编码
-        const encodedSign = this.hmacSha1(encodedPutPolicy, this.config.SECRET_KEY, true);
+        const encodedSign = this.hmacSha1(encodedPutPolicy, this.config.SECRET_KEY, true)
+            .replaceAll("/", "_")
+            .replaceAll("+", "-");
         const uploadToken = `${this.config.ACCESS_KEY}:${encodedSign}:${encodedPutPolicy}`;
         return uploadToken;
     }
 
+    /**
+     * 设置数据(允许覆盖已有值)
+     * @param key 键
+     * @param value 值
+     * @returns
+     */
     public async setData(key: string, value: Buffer): Promise<void> {
         if (this._useMD5Hashing) {
             key = getDigest(Buffer.from(key), "md5");
@@ -39,52 +53,43 @@ export default class KVPEngineQiniuV3 extends KVPEngineQiniuV3Readonly implement
 
         return new Promise((resolve, reject) => {
             const observable = qiniu.upload(file, key, this.buildUploadToken(key), putExtra, config);
-
             observable.subscribe({
-                error: err => reject(new Error(`Upload failed: ${err.message}`)),
-                complete: () => resolve()
+                error: err => {
+                    error(`[KVPEngineQiniuV3.setData] 上传失败: ${err.message}`);
+                    reject(new Error(`Upload failed: ${err.message}`));
+                },
+                complete: async () => {
+                    // 上传完成后，更新缓存
+                    this.LRUCache.put(key, value);
+                    await sleep(1000);
+                    resolve();
+                },
+                next: (progress: UploadProgress) => {
+                    // 报告上传进度
+                    const { total } = progress;
+                    console.log(`[KVPEngineQiniuV3.setData] 上传进度: ${total.percent}%, 已上传: ${total.loaded}`);
+                }
             });
         });
     }
 
+    /**
+     * 删除数据
+     * @param key 键
+     * @returns
+     * @note 七牛云存储不支持在浏览器端执行真正的删除操作，会触发跨域，因此只能通过覆盖文件内容的方式模拟删除
+     */
     public async deleteData(key: string): Promise<void> {
-        if (this._useMD5Hashing) {
-            key = getDigest(Buffer.from(key), "md5");
-        }
+        // 标记文件为已删除(setData 内部会处理 key 的哈希)
+        await this.setData(key, Buffer.from(DELETED_FILE_MARKER));
 
-        // TODO delete/xxx这个路径是我自己猜的，需要确认一下
-
-        // 1. 构造 EncodedEntryURI: <bucket>:<key> → URL安全Base64编码
-        const entry = `${this.config.bucketName}:${key}`;
-        const encodedEntry = qiniu.urlSafeBase64Encode(entry);
-
-        // 2. 构造请求URL
-        // const url = `http://rs.qiniu.com/delete/${encodedEntry}`;
-        // 为了避免CORS问题，使用cors-anywhere.herokuapp.com代理
-        const url = `https://cors-anywhere.herokuapp.com/http://rs.qiniu.com/delete/${encodedEntry}`;
-
-        // 3. 构造待签名字符串 signingStr
-        // 格式: "POST /delete/xxx\nHost: rs.qiniu.com\n\n"
-        const path = `/delete/${encodedEntry}`;
-        const host = "rs.qiniu.com";
-        const signingStr = `POST ${path}\nHost: ${host}\n\n`;
-
-        // 4. HMAC-SHA1 签名 + URL安全Base64编码
-        // 注意：hmacSha1 需要返回二进制签名后再做 urlsafe_base64_encode
-        const encodedSign = this.hmacSha1(signingStr, this.config.SECRET_KEY, true);
-
-        // 5. 拼接管理凭证
-        const accessToken = `${this.config.ACCESS_KEY}:${encodedSign}`;
-
-        // 6. 发送删除请求
-        try {
-            await axios.post(url, null, {
-                headers: {
-                    Authorization: `Qiniu ${accessToken}`
-                }
-            });
-        } catch (error) {
-            throw new Error(`Delete failed: ${error instanceof Error ? error.message : String(error)}`);
-        }
+        // 下面这些缓存移除逻辑其实可以不要，反正 read 和 has 都会判断
+        // // 如果需要在这里操作缓存，必须确保 key 是哈希后的。
+        // // 但由于 setData 内部已经 put 了（使用哈希后的 key），这里 remove 也应该用哈希后的 key。
+        // if (this._useMD5Hashing) {
+        //     key = getDigest(Buffer.from(key), "md5");
+        // }
+        // // 从缓存中移除
+        // this.LRUCache.remove(key);
     }
 }

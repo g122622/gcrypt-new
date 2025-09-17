@@ -1,5 +1,6 @@
-import EncryptionEngineNoop from "@/backend/core/encryptionEngines/EncryptionEngineNoop";
+import EncryptionEngineAES192 from "@/backend/core/encryptionEngines/EncryptionEngineAES192";
 import KVPEngineQiniuV3 from "@/backend/core/KVPEngines/remote/KVPEngineQiniuV3";
+import { log, success } from "@/utils/gyConsole";
 
 export default async function test() {
     // 预先准备的测试数据
@@ -18,13 +19,13 @@ export default async function test() {
         ],
         [
             "write-testKey4(100KB)", // key
-            Buffer.alloc(1024 * 100) // 数据
+            Buffer.alloc(1024 * 200) // 数据
         ]
     ]);
 
     const kvpe = new KVPEngineQiniuV3();
-    kvpe.useMD5Hashing = false; // 关闭MD5哈希
-    const encryptionEngine = new EncryptionEngineNoop();
+    kvpe.useMD5Hashing = true; // 关闭MD5哈希
+    const encryptionEngine = new EncryptionEngineAES192();
     encryptionEngine.init("123");
 
     // 从环境变量读取测试配置（建议在CI/CD中配置）
@@ -41,6 +42,8 @@ export default async function test() {
 
     // 遍历所有测试key
     for (const [key, dataToSend] of TEST_DATA_TO_SEND_MAP) {
+        log(`[KVPEQiniuUnit] 测试key: ${key}`);
+
         // 设置数据
         await kvpe.setData(key, dataToSend);
 
@@ -56,5 +59,28 @@ export default async function test() {
         await kvpe.deleteData(key); // 删除数据
         const existsAfterDelete = await kvpe.hasData(key);
         console.log(existsAfterDelete === false);
+        const foo = await kvpe.getData(key);
+        console.log(foo === null);
+
+        // 重复删除数据
+        await kvpe.deleteData(key); // 删除数据
+        const existsAfterDelete2 = await kvpe.hasData(key);
+        console.log(existsAfterDelete2 === false);
+        const foo2 = await kvpe.getData(key);
+        console.log(foo2 === null);
+
+        // 测试删除后是否可以重新设置数据
+        // 设置数据
+        await kvpe.setData(key, dataToSend);
+
+        // 验证数据是否存在
+        const exists2 = await kvpe.hasData(key);
+        console.log(exists2 === true);
+
+        // 验证数据一致性
+        const result2 = await kvpe.getData(key);
+        console.log(result2.equals(dataToSend));
+
+        success(`[KVPEQiniuUnit] 测试key: ${key} 测试完成!`);
     }
 }
