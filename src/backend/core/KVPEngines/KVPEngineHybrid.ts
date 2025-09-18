@@ -36,7 +36,8 @@ class KVPEngineHybrid extends Disposable implements IKVPEngine {
     // blockUsageMap用于快速查询某个block的存在情况和空间使用情况
     private blockUsageMap = {};
     // 用于确保操作的原子性
-    private opLock: ILock;
+    private readLock: ILock;
+    private writeLock: ILock;
 
     private baseEngine: IKVPEngine; // should not be changed after init
 
@@ -44,7 +45,8 @@ class KVPEngineHybrid extends Disposable implements IKVPEngine {
         super();
         this._register({
             dispose: () => {
-                this.opLock.unlockAll();
+                this.readLock.unlockAll();
+                this.writeLock.unlockAll();
             }
         });
     }
@@ -58,11 +60,13 @@ class KVPEngineHybrid extends Disposable implements IKVPEngine {
         const EntryJson = JSON.parse((await VFS.readFile(storeEntryJsonSrc)).toString()) as EntryJson;
         switch (EntryJson.storeType) {
             case "local":
-                this.opLock = new Lock();
+                this.readLock = new Lock();
+                this.writeLock = new Lock();
                 this.baseEngine = new KVPEngineFolder();
                 break;
             case "remote":
-                this.opLock = new NoopLock();
+                this.readLock = new NoopLock();
+                this.writeLock = new Lock();
                 this.baseEngine = new KVPEngineQiniuV3Readonly();
                 break;
             default:
@@ -197,10 +201,15 @@ class KVPEngineHybrid extends Disposable implements IKVPEngine {
      * @param key
      */
     public async hasData(key: string): Promise<boolean> {
-        if (this.keyReferenceMap[key]) {
-            return true;
+        await this.readLock.lock(); // 加锁
+        try {
+            if (this.keyReferenceMap[key]) {
+                return true;
+            }
+            return await this.baseEngine.hasData(key);
+        } finally {
+            this.readLock.unlock(); // 确保释放
         }
-        return await this.baseEngine.hasData(key);
     }
 
     /**
@@ -208,19 +217,19 @@ class KVPEngineHybrid extends Disposable implements IKVPEngine {
      * @param key
      */
     public async getData(key: string): Promise<Buffer | null> {
-        await this.opLock.lock();
+        await this.readLock.lock();
         if (!(await this.hasData(key))) {
-            this.opLock.unlock();
+            this.readLock.unlock();
             return null;
         }
         // 若属于存在block内的小文件
         if (this.keyReferenceMap[key]) {
             const res = await this.getDataInBlock(this.keyReferenceMap[key], key);
-            this.opLock.unlock();
+            this.readLock.unlock();
             return res;
         } else {
             const res = await this.baseEngine.getData(key);
-            this.opLock.unlock();
+            this.readLock.unlock();
             return res;
         }
     }
@@ -231,7 +240,7 @@ class KVPEngineHybrid extends Disposable implements IKVPEngine {
      * @param buf
      */
     public async setData(key: string, buf: Buffer) {
-        await this.opLock.lock();
+        await this.writeLock.lock();
 
         // 小文件，从单独存放转移，再存block
         if (calcBufSize(buf) <= config.blockInclusionThreshold) {
@@ -265,7 +274,7 @@ class KVPEngineHybrid extends Disposable implements IKVPEngine {
             }
         }
 
-        this.opLock.unlock();
+        this.writeLock.unlock();
     }
 
     /**
@@ -274,13 +283,13 @@ class KVPEngineHybrid extends Disposable implements IKVPEngine {
      * @param buf
      */
     public async deleteData(key: string) {
-        await this.opLock.lock();
+        await this.writeLock.lock();
         if (this.keyReferenceMap[key]) {
             await this.deleteDataInBlock(this.keyReferenceMap[key], key);
         } else {
             await this.baseEngine.deleteData(key);
         }
-        this.opLock.unlock();
+        this.writeLock.unlock();
     }
 }
 
