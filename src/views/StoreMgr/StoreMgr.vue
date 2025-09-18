@@ -71,6 +71,7 @@ import NewStoreWizard from "@/views/NewStoreWizard/NewStoreWizard.vue";
 import emitter from "@/eventBus";
 import path from 'path'
 import openExternal from "@/utils/shell/openExternal";
+import { isElectron } from "@/platform/platform";
 
 interface StoreListItem extends EntryJson {
     storeEntryJsonSrc: string
@@ -128,13 +129,29 @@ const handleImportStoreClick = () => {
         if (foo.files.length === 0) {
             return
         }
-        let filePath: string = foo.files[0].path
-        // 格式化文件路径
-        filePath = filePath.replaceAll("\\", '/')
-        if (filePath[filePath.length - 1] === "/") {
-            filePath = filePath.slice(0, filePath.length - 1)
+        if (isElectron()) {
+            let filePath: string = foo.files[0].path
+            // 格式化文件路径
+            filePath = filePath.replaceAll("\\", '/')
+            if (filePath[filePath.length - 1] === "/") {
+                filePath = filePath.slice(0, filePath.length - 1)
+            }
+            encryptionStore.importStoreByLocalPath(filePath)
+        } else {
+            // 普通浏览器环境获取不到文件path，因此直接读取文件内容
+            const file = foo.files[0]
+            const reader = new FileReader()
+            reader.readAsText(file)
+            reader.onload = function () {
+                encryptionStore.importStoreByJsonContent(reader.result.toString())
+            }
+            reader.onerror = function () {
+                emitter.emit("showMsg", {
+                    level: "error",
+                    msg: "导入加密库失败<br>请检查文件是否损坏"
+                });
+            }
         }
-        encryptionStore.importStore(filePath)
     }
 }
 </script>

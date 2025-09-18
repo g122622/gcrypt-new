@@ -19,6 +19,7 @@ import KVPEngineHybrid from "@/backend/core/KVPEngines/KVPEngineHybrid";
 import EncryptionEngineNoop from "@/backend/core/encryptionEngines/EncryptionEngineNoop";
 import KVStore from "@/utils/KVStore";
 import GcryptApp from "@/main";
+import { isElectron } from "@/platform/platform";
 
 interface StoreListItem extends EntryJson {
     storeEntryJsonSrc: string;
@@ -164,7 +165,7 @@ export const useEncryptionStore = defineStore("encryption", {
             });
         },
 
-        importStore(storeEntryJsonSrc: string) {
+        importStoreByLocalPath(storeEntryJsonSrc: string) {
             if (!this.hasStore(storeEntryJsonSrc)) {
                 VFS.readFile(storeEntryJsonSrc).then(data => {
                     this.storeList.push({ storeEntryJsonSrc, ...JSON.parse(data.toString()) });
@@ -178,6 +179,17 @@ export const useEncryptionStore = defineStore("encryption", {
                 emitter.emit("showMsg", {
                     level: "error",
                     msg: "导入加密库失败<br>不允许重复导入"
+                });
+            }
+        },
+
+        async importStoreByJsonContent(jsonContent: string) {
+            if (!isElectron()) {
+                // 通过vfs写入浏览器的存储系统
+                const basePath = `IndexedDB/importedStores/${Date.now()}`;
+                await VFS.mkdir(basePath, { recursive: true });
+                VFS.writeFile(`${basePath}/entry.json`, jsonContent).then(() => {
+                    this.importStoreByLocalPath(`${basePath}/entry.json`);
                 });
             }
         }
