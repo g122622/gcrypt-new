@@ -23,6 +23,7 @@ import VFS from "@/utils/file/virtualFS";
 import EntryJson from "../types/EntryJson";
 import { Buffer } from "buffer";
 import { Disposable } from "@/utils/helpers/Disposable";
+import KVPEngineQiniuV3 from "./remote/KVPEngineQiniuV3";
 
 const config = {
     blockInclusionThreshold: 12 * 1024, // 小于这个值的value将被放在block内
@@ -67,7 +68,7 @@ class KVPEngineHybrid extends Disposable implements IKVPEngine {
             case "remote":
                 this.readLock = new NoopLock();
                 this.writeLock = new Lock();
-                this.baseEngine = new KVPEngineQiniuV3Readonly();
+                this.baseEngine = new KVPEngineQiniuV3();
                 break;
             default:
                 throw new Error("KVPEngineHybrid::init::unknownStoreType: " + EntryJson.storeType);
