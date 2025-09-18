@@ -201,15 +201,10 @@ class KVPEngineHybrid extends Disposable implements IKVPEngine {
      * @param key
      */
     public async hasData(key: string): Promise<boolean> {
-        await this.readLock.lock(); // 加锁
-        try {
-            if (this.keyReferenceMap[key]) {
-                return true;
-            }
-            return await this.baseEngine.hasData(key);
-        } finally {
-            this.readLock.unlock(); // 确保释放
+        if (this.keyReferenceMap[key]) {
+            return true;
         }
+        return await this.baseEngine.hasData(key);
     }
 
     /**
