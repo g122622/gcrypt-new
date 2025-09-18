@@ -1,3 +1,4 @@
+import emitter from "@/eventBus";
 import { Disposable } from "@/utils/helpers/Disposable";
 
 /**
@@ -41,6 +42,7 @@ class LRUCache extends Disposable {
      */
     constructor(maxSizeInBytes: number, maxPerKeySizeInBytes?: number) {
         super();
+
         if (maxSizeInBytes < 0) {
             throw new Error("maxSizeInBytes must be a positive number or 0");
         }
@@ -51,12 +53,21 @@ class LRUCache extends Disposable {
         } else {
             this.maxPerKeySizeInBytes = maxPerKeySizeInBytes;
         }
+
         this.hashMap = new Map();
         // 初始化虚拟头尾节点
         this.head = new LRUNode("", Buffer.alloc(0));
         this.tail = new LRUNode("", Buffer.alloc(0));
         this.head.next = this.tail;
         this.tail.prev = this.head;
+
+        function clearCache() {
+            this.clear();
+        }
+        emitter.on("Action::clearCache", () => {
+            clearCache.call(this);
+        });
+
         // 注册自身到 Disposable 管理器
         this._register({
             dispose: () => {
@@ -66,6 +77,7 @@ class LRUCache extends Disposable {
                 this.head = null;
                 this.tail = null;
                 this.hashMap = null;
+                emitter.off("Action::clearCache", clearCache);
             }
         });
     }

@@ -65,6 +65,16 @@ const itemList = computed(() => {
             hide: sharedUtils.env === 'production'
         },
         {
+            name: 'clear_cache',
+            tooltip: '清除缓存',
+            onClick: () => {
+                emitter.emit('Action::clearCache')
+            },
+            icon: 'mdi-trash-can',
+            class: 'system-bar-item-normal',
+            hide: false
+        },
+        {
             name: 'devtools',
             tooltip: '切换开发者工具',
             onClick: () => {
