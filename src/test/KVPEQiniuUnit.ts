@@ -36,6 +36,13 @@ export default async function test() {
         encryptionEngine
     );
 
+    // 测试读取一个不存在的key
+    const nonExistentKey = "non-existent-key";
+    const nonExistentData = await kvpe.getData(nonExistentKey);
+    console.log(nonExistentData === null);
+    const nonExistentData2 = await kvpe.hasData(nonExistentKey);
+    console.log(nonExistentData2 === false);
+
     // 遍历所有测试key
     for (const [key, dataToSend] of TEST_DATA_TO_SEND_MAP) {
         log(`[KVPEQiniuUnit] 测试key: ${key}`);

@@ -182,6 +182,9 @@ export default class KVPEngineQiniuV3Readonly extends Disposable implements IKVP
             // Return null if it's a deleted marker
             return res.equals(Buffer.from(DELETED_FILE_MARKER)) ? null : res;
         } catch (error) {
+            if (axios.isAxiosError(error) && error.response?.status === 404) {
+                return null;
+            }
             throw error;
         } finally {
             resetGlobalOperationState();
