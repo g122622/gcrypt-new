@@ -1,6 +1,5 @@
 import * as qiniu from "qiniu-js";
 import IKVPEngine from "../../types/IKVPEngine";
-import axios from "axios";
 import getDigest from "@/backend/hash/getDigest";
 import KVPEngineQiniuV3Readonly from "./KVPEngineQiniuV3Readonly";
 import { Buffer } from "buffer";

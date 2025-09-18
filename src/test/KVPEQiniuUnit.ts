@@ -10,16 +10,12 @@ export default async function test() {
             Buffer.from("Hello, Qiniu!") // 数据
         ],
         [
-            "write-testKey2", // key
-            Buffer.from([114, 514, 191, 9810]) // 数据
-        ],
-        [
-            "write-testKey3(empty)", // key
+            "write-testKey2(empty)", // key
             Buffer.from("") // 数据
         ],
         [
-            "write-testKey4(100KB)", // key
-            Buffer.alloc(1024 * 200) // 数据
+            "write-testKey3(100KB)", // key
+            Buffer.alloc(1024 * 100) // 数据
         ]
     ]);
 

@@ -27,6 +27,7 @@ export default class KVPEngineQiniuV3Readonly extends Disposable implements IKVP
     protected encryptionEngine!: IEncryptionEngine;
     protected _useMD5Hashing: boolean = true; // 仅仅用于测试，实际使用时请设置为 true
     protected LRUCache: LRUCache = null;
+    protected DELETE_MARKER_LENGTH = 0;
 
     get useMD5Hashing(): boolean {
         return this._useMD5Hashing;
@@ -45,7 +46,7 @@ export default class KVPEngineQiniuV3Readonly extends Disposable implements IKVP
             }
         });
         // 这个缓存主要是为了缓存小文件（如元数据、缩略图等），因此单item最大值设为512KB
-        this.LRUCache = new LRUCache(0, 0); // 20MB, 512KB
+        this.LRUCache = new LRUCache(1024 * 1024 * 20, 1024 * 512); // 20MB, 512KB
         this._register(this.LRUCache);
     }
 
@@ -59,11 +60,15 @@ export default class KVPEngineQiniuV3Readonly extends Disposable implements IKVP
             SECRET_KEY: json.config.remote.SECRET_KEY
         };
         this.encryptionEngine = encryptionEngine;
+
+        this.DELETE_MARKER_LENGTH = (await this.encryptionEngine.encrypt(Buffer.from(DELETED_FILE_MARKER))).length;
     }
 
     public async initWithConfig(config: typeof KVPEngineQiniuV3Readonly.prototype.config, encryptionEngine: IEncryptionEngine) {
         this.config = config;
         this.encryptionEngine = encryptionEngine;
+
+        this.DELETE_MARKER_LENGTH = (await this.encryptionEngine.encrypt(Buffer.from(DELETED_FILE_MARKER))).length;
     }
 
     protected hmacSha1(encodedFlags: string, secretKey: string, shouldToBase64: boolean = true): string {
@@ -102,7 +107,6 @@ export default class KVPEngineQiniuV3Readonly extends Disposable implements IKVP
             if (this._useMD5Hashing) {
                 key = getDigest(Buffer.from(key), "md5");
             }
-            debugger;
             // 检查缓存
             const cached = this.LRUCache.get(key);
             if (cached) {
@@ -118,18 +122,18 @@ export default class KVPEngineQiniuV3Readonly extends Disposable implements IKVP
             const contentLength = headResponse.headers["content-length"];
             ASSERT(contentLength);
 
-            const markerLength = (await this.encryptionEngine.encrypt(Buffer.from(DELETED_FILE_MARKER))).length;
             const actualLength = parseInt(contentLength, 10);
 
             // 长度不匹配 → 肯定不是删除标记 → 存在有效数据
-            if (actualLength !== markerLength) {
+            ASSERT(this.DELETE_MARKER_LENGTH !== 0);
+            if (actualLength !== this.DELETE_MARKER_LENGTH) {
                 return true;
             }
 
             // 长度匹配 → 需要下载内容确认是否真的是删除标记
             const response = await axios.get(url, { responseType: "arraybuffer" });
             const arrayBuffer = response.data;
-            const downloadedData = Buffer.from(arrayBuffer);
+            const downloadedData = await this.encryptionEngine.decrypt(Buffer.from(arrayBuffer));
 
             // 对比下载到的内容是否与删除标记一致
             return !downloadedData.equals(Buffer.from(DELETED_FILE_MARKER));
