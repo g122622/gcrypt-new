@@ -71,11 +71,54 @@ class EncryptionEngineAES192 implements IEncryptionEngine {
         });
     }
 
+    private encryptBrowser(rawData: Buffer): Promise<Buffer> {
+        return new Promise((resolve, reject) => {
+            ASSERT(!!this.currentPwd);
+            try {
+                scrypt
+                    .scrypt(
+                        Buffer.from(this.currentPwd),
+                        Buffer.from(EncryptConfig.salt),
+                        EncryptConfig.cost,
+                        8, // Block size (default for scrypt)
+                        1, // Parallelization (default for scrypt)
+                        EncryptConfig.keyLength
+                    )
+                    .then(key => {
+                        const cipher = crypto.createCipheriv(EncryptConfig.algorithm, key, EncryptConfig.iv);
+                        let encrypted = Buffer.from("");
+                        cipher.on("readable", () => {
+                            let chunk;
+                            while ((chunk = cipher.read()) !== null) {
+                                encrypted = Buffer.concat([encrypted, chunk]);
+                            }
+                        });
+                        cipher.on("end", () => {
+                            resolve(encrypted);
+                        });
+                        cipher.on("error", err => {
+                            error("浏览器端加密失败: " + err.toString());
+                            reject(err);
+                        });
+                        cipher.write(rawData);
+                        cipher.end();
+                    })
+                    .catch(err => {
+                        error("scrypt 密钥派生失败: " + err.toString());
+                        reject(err);
+                    });
+            } catch (e) {
+                error("加密失败" + e.toString());
+                throw e;
+            }
+        });
+    }
+
     public encrypt(rawData: Buffer): Promise<Buffer> {
         if (isNodeJS()) {
             return this.encryptNode(rawData);
         } else {
-            return this.encryptNode(rawData);
+            return this.encryptBrowser(rawData);
         }
     }
 

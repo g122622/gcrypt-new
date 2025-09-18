@@ -98,12 +98,11 @@ export default class KVPEngineQiniuV3Readonly extends Disposable implements IKVP
 
     public async hasData(key: string): Promise<boolean> {
         changeGlobalOperationState(`Checking ${key} in Qiniu KV3...`);
-
         try {
             if (this._useMD5Hashing) {
                 key = getDigest(Buffer.from(key), "md5");
             }
-
+            debugger;
             // 检查缓存
             const cached = this.LRUCache.get(key);
             if (cached) {
@@ -119,7 +118,7 @@ export default class KVPEngineQiniuV3Readonly extends Disposable implements IKVP
             const contentLength = headResponse.headers["content-length"];
             ASSERT(contentLength);
 
-            const markerLength = Buffer.from(DELETED_FILE_MARKER).length;
+            const markerLength = (await this.encryptionEngine.encrypt(Buffer.from(DELETED_FILE_MARKER))).length;
             const actualLength = parseInt(contentLength, 10);
 
             // 长度不匹配 → 肯定不是删除标记 → 存在有效数据
