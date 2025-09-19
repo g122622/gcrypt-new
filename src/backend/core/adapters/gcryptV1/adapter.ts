@@ -30,6 +30,7 @@ class GcryptV1Adapter extends Disposable implements IAdapter {
     private currentFileTable: FileTable;
     private cachedFileTables: Array<{ fileTable: FileTable; dir: Addr }> = [];
     public adapterGuid: string;
+    private isCacheEnabled: boolean = false;
 
     constructor() {
         super();
@@ -85,13 +86,19 @@ class GcryptV1Adapter extends Disposable implements IAdapter {
         this.currentDirectory = lodash.cloneDeep(newDir);
         // 更新文件列表
         this.currentFileTable = await this._getFileTable(newDir);
-        this._updateCache();
+
+        if (this.isCacheEnabled) {
+            this._updateCache();
+        }
     }
 
     /**
      * 缓存文件列表，提高下次访问速率
      */
     private _cacheFileTables(fileTable: FileTable, dir: Addr) {
+        if (!this.isCacheEnabled) {
+            return;
+        }
         for (let i = 0; i < this.cachedFileTables.length; i++) {
             // 发现之前缓存过一样的dir，那么更新缓存
             if (this.cachedFileTables[i].dir.compareWith(dir)) {
@@ -106,6 +113,9 @@ class GcryptV1Adapter extends Disposable implements IAdapter {
      * 根据this.currentFileTable更新cache，在更改了this.currentFileTable时必须调用
      */
     private _updateCache(): void {
+        if (!this.isCacheEnabled) {
+            return;
+        }
         this._cacheFileTables(this.currentFileTable, this.currentDirectory);
     }
 
@@ -116,10 +126,12 @@ class GcryptV1Adapter extends Disposable implements IAdapter {
         const foo = lodash.cloneDeep(dir);
 
         // 先查找缓存，看是否命中
-        for (let i = 0; i < this.cachedFileTables.length; i++) {
-            if (this.cachedFileTables[i].dir.compareWith(foo)) {
-                // console.log("cache matched!", newDir, this.cachedFileTables[i].fileTable)
-                return this.cachedFileTables[i].fileTable;
+        if (this.isCacheEnabled) {
+            for (let i = 0; i < this.cachedFileTables.length; i++) {
+                if (this.cachedFileTables[i].dir.compareWith(foo)) {
+                    // console.log("cache matched!", newDir, this.cachedFileTables[i].fileTable)
+                    return this.cachedFileTables[i].fileTable;
+                }
             }
         }
 
