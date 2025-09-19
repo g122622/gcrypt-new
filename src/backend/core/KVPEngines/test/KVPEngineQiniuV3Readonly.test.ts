@@ -26,8 +26,8 @@ describe("KVPEngineQiniuV3Readonly", () => {
         await kvpe.initWithConfig(
             {
                 domain: "test.charwind.top",
-                ACCESS_KEY: "amGAGNk2frQQ4-jnKe2WjC2dNzUQ7SD65TBSInKl",
-                SECRET_KEY: "9JMkKikNQv_I4kAh_lsMP8qZ09-heaqqi2u3rbcg",
+                ACCESS_KEY: "xxx",
+                SECRET_KEY: "xxx",
                 isHttps: false,
                 bucketName: "gcrypt-test"
             },
