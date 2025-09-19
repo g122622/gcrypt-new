@@ -10,6 +10,8 @@
         <template v-if="isIntersecting">
             <v-tooltip activator="parent" location="right" open-delay="500">
                 {{ `[${index + 1}] ${singleFileItem.name}` }}
+                <br></br>
+                缩略图大小：{{ currentThumbnail ? prettyBytes(currentThumbnail.length * 3 / 4) : '无' }}
             </v-tooltip>
             <!-- 前置内容 -->
             <div style="display: flex;justify-content: flex-start;align-items: center; height:80%; width:100%"
@@ -72,6 +74,7 @@ import { Buffer } from "buffer";
 import { isElectron } from "@/platform/platform";
 import generateThumbnailUsingCanvas from "@/utils/image/generateThumbnailUsingCanvas";
 import { Disposable } from "@/utils/helpers/Disposable";
+import { extractFirstFrameFromVideoBase64 } from "@/utils/image/extractFirstFrameFromVideoBase64";
 
 interface Props {
     viewOptions: ViewOptions,
@@ -179,19 +182,46 @@ const registerCallbackOfGetThumbnailFromSystem = () => {
 }
 // 尝试从canvas生成缩略图，并保存
 const registerCallbackOfGenerateThumbnail = () => {
-    if (getFileType(props.singleFileItem.name) !== 'img') {
-        return; // 非图片文件不生成缩略图
+    if (getFileType(props.singleFileItem.name) === 'img') {
+        disposableCollection.registerIdleCallback(async () => {
+            const base64Str = (await props.adapter.readFile(props.singleFileItem.name)).toString('base64')
+            const dataUrl = `data:image/jpg;base64,${base64Str}`
+            const res = await generateThumbnailUsingCanvas(
+                dataUrl,
+                { height: 256, width: 256, quality: 0.9, outputType: 'base64' }
+            ) as string;
+            currentThumbnail.value = res
+            await props.adapter.setExtraMeta(props.singleFileItem.key, 'thumbnail', Buffer.from(currentThumbnail.value))
+        })
+    } else if (getFileType(props.singleFileItem.name) === 'video') {
+        disposableCollection.registerIdleCallback(async () => {
+            try {
+                const fileBuffer = await props.adapter.readFile(props.singleFileItem.name);
+                // 判断文件大小。超过20MB则不生成缩略图，直接标记为n/a
+                if (fileBuffer.length > 20 * 1024 * 1024) {
+                    warn(`视频文件过大（>${20}MB），不生成缩略图，文件名：${props.singleFileItem.name}，文件buffer长度：${fileBuffer.length}`)
+                    await props.adapter.setExtraMeta(props.singleFileItem.key, 'thumbnail', Buffer.from('n/a'))
+                    return
+                }
+                const dataUrl = `data:video/mp4;base64,${fileBuffer.toString('base64')}`
+                const firstFrameBase64 = await extractFirstFrameFromVideoBase64(dataUrl, 'image/jpeg', 0.7)
+                const res = await generateThumbnailUsingCanvas(
+                    firstFrameBase64,
+                    { height: 256, width: 256, quality: 0.9, outputType: 'base64' }
+                ) as string;
+                currentThumbnail.value = res
+                await props.adapter.setExtraMeta(props.singleFileItem.key, 'thumbnail', Buffer.from(currentThumbnail.value))
+            } catch (e) {
+                warn(`从视频生成缩略图失败，错误原因：${e.toString()}，文件名：${props.singleFileItem.name}`)
+                await props.adapter.setExtraMeta(props.singleFileItem.key, 'thumbnail', Buffer.from('n/a'))
+            }
+        })
+    } else {
+        // 其他类型不处理，直接标记为n/a
+        disposableCollection.registerIdleCallback(async () => {
+            await props.adapter.setExtraMeta(props.singleFileItem.key, 'thumbnail', Buffer.from('n/a'))
+        })
     }
-    disposableCollection.registerIdleCallback(async () => {
-        const base64Str = (await props.adapter.readFile(props.singleFileItem.name)).toString('base64')
-        const dataUrl = `data:image/jpg;base64,${base64Str}`
-        const res = await generateThumbnailUsingCanvas(
-            dataUrl,
-            { height: 256, width: 256, quality: 90, outputType: 'base64' }
-        ) as string;
-        currentThumbnail.value = res
-        await props.adapter.setExtraMeta(props.singleFileItem.key, 'thumbnail', Buffer.from(currentThumbnail.value))
-    })
 }
 
 onMounted(async () => {

@@ -95,7 +95,6 @@ export default function openBufferFileInNewTab(buffer: ArrayBuffer, fileName: st
             keepAspectRatio: true,
             outputType: "dataURL"
         }).then(dataURL => {
-            console.log("生成的缩略图数据URL：" + dataURL);
             newTab.eval(`
                 console.log("开始执行注入的代码");
                 (${changeFavicon.toString()})('${dataURL}');
