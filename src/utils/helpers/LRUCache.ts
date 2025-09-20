@@ -1,5 +1,7 @@
 import emitter from "@/eventBus";
 import { Disposable } from "@/utils/helpers/Disposable";
+import prettyBytes from "../prettyBytes";
+import sharedUtils from "../sharedUtils";
 
 /**
  * LRUNode 是 LRUCache 中的节点。
@@ -34,6 +36,7 @@ class LRUCache extends Disposable {
     private hashMap: Map<string, LRUNode>; // 为了快速查找，使用哈希表存储节点
     private head: LRUNode;
     private tail: LRUNode;
+    private guid: string;
 
     /**
      * constructor
@@ -54,6 +57,8 @@ class LRUCache extends Disposable {
             this.maxPerKeySizeInBytes = maxPerKeySizeInBytes;
         }
 
+        this.guid = sharedUtils.getHash(8);
+
         this.hashMap = new Map();
         // 初始化虚拟头尾节点
         this.head = new LRUNode("", Buffer.alloc(0));
@@ -67,6 +72,17 @@ class LRUCache extends Disposable {
         emitter.on("Action::clearCache", () => {
             clearCache.call(this);
         });
+        function showCacheInfo() {
+            console.log(
+                `[LRUCache ${this.guid}] 当前已用容量: ${prettyBytes(this.currentSizeInBytes, 2)}，最大容量: ${prettyBytes(
+                    this.maxSizeInBytes,
+                    2
+                )}`
+            );
+        }
+        emitter.on("Action::showCacheInfo", () => {
+            showCacheInfo.call(this);
+        });
 
         // 注册自身到 Disposable 管理器
         this._register({
@@ -78,6 +94,7 @@ class LRUCache extends Disposable {
                 this.tail = null;
                 this.hashMap = null;
                 emitter.off("Action::clearCache", clearCache);
+                emitter.off("Action::showCacheInfo", showCacheInfo);
             }
         });
     }

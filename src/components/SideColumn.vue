@@ -18,6 +18,9 @@
 
         <!-- 底部容器 -->
         <div id="bottom-container">
+            <IconBtn icon="mdi-memory" size="small" style="margin-top:10px" variant="flat" tooltip="查看缓存信息"
+                @click="emitter.emit('Action::showCacheInfo')">
+            </IconBtn>
             <!-- 性能监视器 -->
             <PerformanceMonitor v-if="isNodeJS()" />
             <!-- 文件状态管理 -->
@@ -37,6 +40,7 @@ import FileStateManager from "@/components/FileStateManager.vue";
 import { useRouter, useRoute } from 'vue-router';
 import { useSettingsStore } from "@/store/settings"
 import { isNodeJS } from "@/platform/platform";
+import emitter from "@/eventBus";
 
 const settingsStore = useSettingsStore()
 const router = useRouter()
