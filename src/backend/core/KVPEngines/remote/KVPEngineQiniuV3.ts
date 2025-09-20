@@ -60,7 +60,7 @@ export default class KVPEngineQiniuV3 extends KVPEngineQiniuV3Readonly implement
                 complete: async () => {
                     // 上传完成后，更新缓存
                     this.LRUCache.put(key, value);
-                    await sleep(1000);
+                    await sleep(100);
                     resolve();
                 },
                 next: (progress: UploadProgress) => {
