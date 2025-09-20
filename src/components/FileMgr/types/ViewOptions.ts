@@ -13,7 +13,7 @@
  */
 
 export interface ViewOptions {
-    itemDisplayMode: number; // 0 list, 1 item
+    itemDisplayMode: number; // 0 list, 1 item, 2 看图模式, 3 列表模式（表头内容可调整）
     itemSize: number; // in px
     sortBy: number; // 0 name, 1 timeModifyF
     folderFirst: number;

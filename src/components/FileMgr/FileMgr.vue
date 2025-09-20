@@ -46,7 +46,7 @@
                                         <v-btn v-for="listItem in item.list" :key="listItem.title">
                                             <v-icon>{{ listItem.icon }}</v-icon>
                                             <v-tooltip activator="parent" location="bottom">{{ listItem.title
-                                                }}</v-tooltip>
+                                            }}</v-tooltip>
                                         </v-btn>
 
                                     </v-btn-toggle>
@@ -96,7 +96,7 @@
                     <v-icon @click="gotoDir(currentDir.goToRoot(), true)"
                         style="cursor: pointer;">mdi-map-marker</v-icon>
                     <v-tooltip activator="parent" location="bottom">{{ `当前目录: ` + currentDir.toPathStr()
-                        }}</v-tooltip>
+                    }}</v-tooltip>
                     <v-breadcrumbs density="compact" style="display: inline;">
                         <template v-for="(item, i) in currentDir.tokens" :key="item">
                             <v-breadcrumbs-item :title="item"
@@ -122,7 +122,53 @@
                     :style="{ height: props.height ?? 'calc(100% - 32px)' }">
                     <!-- 文件列表 -->
                     <template v-if="currentFileTableForRender.length > 0 && !isLoading">
-                        <template v-if="viewOptions.itemDisplayMode === 1">
+                        <template v-if="viewOptions.itemDisplayMode === 3">
+                            <!-- 列表模式 -->
+                            <v-card>
+                                <v-table density="compact" hover>
+                                    <thead>
+                                        <tr>
+                                            <th class="text-left" width="50px">No.</th>
+                                            <th class="text-left" width="70px">类型</th>
+                                            <th class="text-left">名称</th>
+                                            <th class="text-left" width="120px">大小</th>
+                                            <th class="text-left" width="170px">修改日期</th>
+                                            <th class="text-left">操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="(item, index) in currentFileTableForRender" :key="item.key"
+                                            :class="{ 'selected-row': selectedItems.has(item) }"
+                                            @click="handleItemSelection(item)" @dblclick="handleItemDoubleClick(item)">
+                                            <td>{{ index + 1 }}</td>
+                                            <td>
+                                                <template v-if="item.type === `folder`">
+                                                    <img :src="`./assets/fileTypes/folder.png`"
+                                                        style="width: 20px;margin-top: 6px;" loading="lazy" />
+                                                </template>
+                                                <template v-if="item.type === `file`">
+                                                    <img :src="`./assets/fileTypes/${getFileType(item.name)}.png`"
+                                                        style="width: 20px; margin-top: 6px;" loading="lazy" />
+                                                </template>
+                                            </td>
+                                            <td>{{ item.name }}</td>
+                                            <td>{{ item.type === 'file' ? prettyBytes(item.meta.size) : '-' }}</td>
+                                            <td>{{ new Date(item.meta.modifiedTime).toLocaleString() }}</td>
+                                            <td>
+                                                <v-btn icon size="small"
+                                                    v-for="menuItem in getItemMenuList(item).filter(i => i.actions)"
+                                                    :key="menuItem.text" @click.stop="menuItem.actions.onClick()">
+                                                    <v-icon>{{ menuItem.icon }}</v-icon>
+                                                    <v-tooltip activator="parent" location="bottom">{{ menuItem.text
+                                                    }}</v-tooltip>
+                                                </v-btn>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </v-table>
+                            </v-card>
+                        </template>
+                        <template v-else-if="viewOptions.itemDisplayMode === 1">
                             <AdvancedGrid layout-mode="grid" columns="auto-fill" :padding="10"
                                 :min-column-width="viewOptions.itemSize > 75 ? viewOptions.itemSize : 105" :gap="10">
                                 <FileItem :viewOptions="viewOptions" :singleFileItem="item" :index="index"
@@ -171,19 +217,20 @@
                     </div>
                     <BottomTip></BottomTip>
                     <!-- 背景右键菜单 -->
-                    <ContextMenu :width="200" v-if="options.useCtxMenu && !isMobile()" :menuList="[
-                        {
-                            text: '上一级目录', icon: 'mdi-arrow-up', actions: { onClick: () => { up() } }
-                        },
-                        {
-                            text: '后退', icon: 'mdi-arrow-left', actions: { onClick: () => { back() } }
-                        },
-                        {
-                            type: 'divider'
-                        },
-                        {
-                            text: '刷新', icon: 'mdi-refresh', actions: { onClick: () => { refresh() } }
-                        }]">
+                    <ContextMenu :width="200"
+                        v-if="options.useCtxMenu && !isMobile() && viewOptions.itemDisplayMode !== 3" :menuList="[
+                            {
+                                text: '上一级目录', icon: 'mdi-arrow-up', actions: { onClick: () => { up() } }
+                            },
+                            {
+                                text: '后退', icon: 'mdi-arrow-left', actions: { onClick: () => { back() } }
+                            },
+                            {
+                                type: 'divider'
+                            },
+                            {
+                                text: '刷新', icon: 'mdi-refresh', actions: { onClick: () => { refresh() } }
+                            }]">
                     </ContextMenu>
                 </div>
                 <!-- 底部栏 -->
@@ -225,6 +272,7 @@ import sleep from "@/utils/sleep";
 import contextMenuItem from "@/types/contextMenuItem";
 import vDbltouch from "@/directives/dbltouch";
 import { isElectron, isMobile } from "@/platform/platform";
+import getFileType from "@/utils/file/getFileType";
 
 // 组件
 import ContextMenu from "../shared/ContextMenu.vue";
@@ -663,6 +711,10 @@ const viewOptionsLists = [
             {
                 title: '看图模式',
                 icon: "mdi-image"
+            },
+            {
+                title: '表格模式',
+                icon: "mdi-table"
             }
         ]
     },
@@ -884,5 +936,29 @@ const searchWord = ref('')
 
 #file_mgr_container .v-application__wrap {
     min-height: v-bind("props.height ? 'unset' : 'calc(100vh - 40px)'");
+}
+
+// 列表模式样式
+.selected-row {
+    background-color: rgba(var(--v-theme-primary), 0.15) !important;
+}
+
+.v-table {
+    border-radius: 8px;
+    overflow: hidden;
+
+    th {
+        font-weight: bold;
+        background-color: rgba(var(--v-theme-surface-variant), 0.5);
+    }
+
+    tr {
+        cursor: pointer;
+        transition: background-color 0.2s;
+
+        &:hover {
+            background-color: rgba(var(--v-theme-surface-variant), 0.2);
+        }
+    }
 }
 </style>
