@@ -33,3 +33,5 @@ pnpm-debug.log*
 .VSCodeCounter/2023-08-18_16-41-55/results.json
 .VSCodeCounter/2023-08-18_16-41-55/results.md
 .VSCodeCounter/2023-08-18_16-41-55/results.txt
+
+/automations/secret.js
