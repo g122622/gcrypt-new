@@ -78,14 +78,24 @@
                     构建平台：
                     {{ store.compileInfo.compilePlatform }}
                     <br>
-                    构建CPU信息：
-                    {{ store.compileInfo.compileCPU }}
+                    <!-- Git 信息 -->
+                    构建Git提交哈希：
+                    {{ store.compileInfo.gitCommitHash }}
+                    <br>
+                    构建Git提交日期：
+                    {{ store.compileInfo.gitCommitDate }}
+                    <br>
+                    构建Git提交信息：
+                    {{ store.compileInfo.gitCommitMessage }}
                     <br>
                     构建内存信息：
                     {{ store.compileInfo.compileMem }}
                     <br>
-                    构建环境：
-                    {{ store.compileInfo.compileEnv }}
+                    构建CPU信息：
+                    {{ store.compileInfo.compileCPU }}
+                    <br>
+                    <!-- 构建环境：
+                    {{ store.compileInfo.compileEnv }} -->
                 </div>
 
             </v-card>

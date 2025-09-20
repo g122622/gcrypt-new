@@ -18,7 +18,11 @@ export const useMainStore = defineStore("main", {
                 compilePlatform: COMPILE_PLATFORM,
                 compileEnv: COMPILE_ENV,
                 compileCPU: COMPILE_CPU,
-                compileMem: COMPILE_MEM
+                compileMem: COMPILE_MEM,
+                // Git 信息
+                gitCommitHash: GIT_COMMIT_HASH,
+                gitCommitDate: GIT_COMMIT_DATE,
+                gitCommitMessage: GIT_COMMIT_MESSAGE
             },
             notifications: [],
             mainContentScrollable: true,
