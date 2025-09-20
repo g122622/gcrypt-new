@@ -14,8 +14,10 @@
                 缩略图大小：{{ currentThumbnail ? prettyBytes(currentThumbnail.length * 3 / 4) : '无' }}
             </v-tooltip>
             <!-- 前置内容 -->
-            <div style="display: flex;justify-content: flex-start;align-items: center; height:80%; width:100%"
-                :style="{ flexDirection: (viewOptions.itemDisplayMode === 0 ? 'row' : 'column') }">
+            <div style="display: flex;justify-content: flex-start;align-items: center; width:100%" :style="{
+                flexDirection: (viewOptions.itemDisplayMode === 0 ? 'row' : 'column'),
+                height: (viewOptions.itemDisplayMode === 2 ? '100%' : '80%'),
+            }">
                 <template v-if="singleFileItem.type === `folder`">
                     <img :src="`./assets/fileTypes/folder.png`" class="file-types-image" loading="lazy" />
                 </template>

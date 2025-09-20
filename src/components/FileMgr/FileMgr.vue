@@ -25,7 +25,7 @@
     <div id="file_mgr_container" @dragover="e => e.preventDefault()" @drop="e => handleExtDrop(e)">
         <v-app>
             <!-- 顶部工具栏 -->
-            <v-app-bar density="compact" style="position:fixed;top:unset;">
+            <v-app-bar density="compact" style="top:unset;">
                 <!-- 导航按钮组 -->
                 <IconBtn icon="mdi-arrow-left" tooltip="后退" @click="back()"></IconBtn>
                 <IconBtn icon="mdi-arrow-up" tooltip="上一级目录" @click="up()"></IconBtn>
@@ -46,7 +46,7 @@
                                         <v-btn v-for="listItem in item.list" :key="listItem.title">
                                             <v-icon>{{ listItem.icon }}</v-icon>
                                             <v-tooltip activator="parent" location="bottom">{{ listItem.title
-                                            }}</v-tooltip>
+                                                }}</v-tooltip>
                                         </v-btn>
 
                                     </v-btn-toggle>
@@ -96,7 +96,7 @@
                     <v-icon @click="gotoDir(currentDir.goToRoot(), true)"
                         style="cursor: pointer;">mdi-map-marker</v-icon>
                     <v-tooltip activator="parent" location="bottom">{{ `当前目录: ` + currentDir.toPathStr()
-                    }}</v-tooltip>
+                        }}</v-tooltip>
                     <v-breadcrumbs density="compact" style="display: inline;">
                         <template v-for="(item, i) in currentDir.tokens" :key="item">
                             <v-breadcrumbs-item :title="item"
