@@ -46,7 +46,7 @@
                                         <v-btn v-for="listItem in item.list" :key="listItem.title">
                                             <v-icon>{{ listItem.icon }}</v-icon>
                                             <v-tooltip activator="parent" location="bottom">{{ listItem.title
-                                                }}</v-tooltip>
+                                            }}</v-tooltip>
                                         </v-btn>
 
                                     </v-btn-toggle>
@@ -96,7 +96,7 @@
                     <v-icon @click="gotoDir(currentDir.goToRoot(), true)"
                         style="cursor: pointer;">mdi-map-marker</v-icon>
                     <v-tooltip activator="parent" location="bottom">{{ `当前目录: ` + currentDir.toPathStr()
-                        }}</v-tooltip>
+                    }}</v-tooltip>
                     <v-breadcrumbs density="compact" style="display: inline;">
                         <template v-for="(item, i) in currentDir.tokens" :key="item">
                             <v-breadcrumbs-item :title="item"
@@ -405,7 +405,7 @@ const importFile = async (files: FileList) => {
                 reader.readAsArrayBuffer(file);
             })
         }, {
-            name: `引入文件 ${file.path}`,
+            name: `引入文件 ${file.path || file.name}`,
             groupId: taskGroupId,
             errorHandler(err) {
                 notification.error(`导入文件失败 ${err.message}`)
