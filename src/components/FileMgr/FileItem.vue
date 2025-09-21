@@ -56,6 +56,9 @@
                 <template v-else-if="viewOptions.itemDisplayMode === 2 && props.singleFileItem.type === 'file'">
                     {{ prettyBytes(props.singleFileItem.meta.size, 2) }}
                 </template>
+                <template v-else-if="viewOptions.itemDisplayMode === 2 && props.singleFileItem.type === 'folder'">
+                    {{ props.singleFileItem.name }}
+                </template>
             </div>
         </template>
     </div>
