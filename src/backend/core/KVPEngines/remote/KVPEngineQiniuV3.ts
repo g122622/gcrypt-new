@@ -66,7 +66,7 @@ export default class KVPEngineQiniuV3 extends KVPEngineQiniuV3Readonly implement
                 next: (progress: UploadProgress) => {
                     // 报告上传进度
                     const { total } = progress;
-                    console.log(`[KVPEngineQiniuV3.setData] 上传进度: ${total.percent}%, 已上传: ${total.loaded}`);
+                    console.log(`[KVPEngineQiniuV3::setData] [${key}] 上传进度: ${total.percent}%, 已上传: ${total.loaded}`);
                 }
             });
         });

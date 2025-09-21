@@ -2,6 +2,7 @@ import emitter from "@/eventBus";
 import { Disposable } from "@/utils/helpers/Disposable";
 import prettyBytes from "../prettyBytes";
 import sharedUtils from "../sharedUtils";
+import notification from "@/backend/notification";
 
 /**
  * LRUNode 是 LRUCache 中的节点。
@@ -73,12 +74,12 @@ class LRUCache extends Disposable {
             clearCache.call(this);
         });
         function showCacheInfo() {
-            console.log(
-                `[LRUCache ${this.guid}] 当前已用容量: ${prettyBytes(this.currentSizeInBytes, 2)}，最大容量: ${prettyBytes(
-                    this.maxSizeInBytes,
-                    2
-                )}`
-            );
+            const infoStr = `[LRUCache ${this.guid}] 当前已用容量: ${prettyBytes(
+                this.currentSizeInBytes,
+                2
+            )}，最大容量: ${prettyBytes(this.maxSizeInBytes, 2)}`;
+            console.log(infoStr);
+            notification.info(infoStr);
         }
         emitter.on("Action::showCacheInfo", () => {
             showCacheInfo.call(this);
